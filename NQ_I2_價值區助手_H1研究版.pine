@@ -2,6 +2,7 @@
 // NQ I2 價值區助手（H1 研究版，任意週期）：凍結規則 v1／v2 的看盤輔助，另外顯示 H1 與低把握傾向（只供研究，不改規則）
 // 研究用，不是投資建議；只畫線與發警報，不下單、不改規則。
 // 圖表可以用 1／5／15 分K；指標內部一律用 1 分K 資料逐分鐘計算（request.security_lower_tf），結果和 1 分K 版相同。
+// v11：超過 15 分K（例如日線）不畫標籤和方框；只保留最近幾個交易日的標籤；方向標籤縮成一行、不做的日子不畫。
 // 使用方式：NQ 單一合約（例如 NQZ2026），建議開「延長交易時段」。換月當天不要用（凍結規則當天不做 I2）。
 indicator("NQ I2 價值區助手（H1 研究版）", shorttitle="I2 VA H1", overlay=true, max_labels_count=500, max_boxes_count=500)
 
@@ -23,6 +24,7 @@ showHist  = input.bool(false, "資訊表顯示歷史統計")
 viewOn    = input.bool(false, "查看過去某一天", group="歷史")
 viewT     = input.time(timestamp("2026-10-21T00:00:00"), "日期", group="歷史")
 showLvLbl = input.bool(true, "價位線右側標示名稱與價格")
+keepDays  = input.int(3, "圖上標籤保留最近幾個交易日", minval=1, maxval=30)
 refMode   = input.string("只顯示歷史為正", "參考點（不是規則）", options=["只顯示歷史為正", "全部", "關閉"], group="參考點")
 refAlert  = input.bool(false, "參考點也發警報", group="參考點")
 showRef   = refMode != "關閉"
@@ -39,7 +41,7 @@ mod   = minOf(time)
 isRth = mod >= 570 and mod <= 959
 idx   = mod - 570
 viewYmd = year(viewT, "Asia/Taipei") * 10000 + month(viewT, "Asia/Taipei") * 100 + dayofmonth(viewT, "Asia/Taipei")
-tfOk  = timeframe.isintraday and timeframe.multiplier <= 15
+tfOk  = timeframe.isminutes and timeframe.multiplier <= 15   // 只有 1～15 分K 才畫標籤和方框
 
 // 這根圖表K棒裡面的每一根 1 分K
 [aT, aO, aH, aL, aC, aV] = request.security_lower_tf(syminfo.tickerid, "1", [time, open, high, low, close, volume])
@@ -93,6 +95,39 @@ var box    i2TpB  = na        // I2 止盈區（v1 +55）
 var box    i2SlB  = na        // I2 止損區
 var string i2Pnl  = ""
 pnlTxt(x) => str.tostring(x, "+$#,##0;−$#,##0")
+// 圖上標籤／方框依交易日登記，只保留最近 keepDays 天（舊的刪掉，避免疊在一起）
+var array<int>   dayQ    = array.new<int>()
+var array<label> keepLbl = array.new<label>()
+var array<int>   keepLD  = array.new<int>()
+var array<box>   keepBox = array.new<box>()
+var array<int>   keepBD  = array.new<int>()
+regL(l, d) =>
+    array.push(keepLbl, l)
+    array.push(keepLD, d)
+    l
+regB(b, d) =>
+    array.push(keepBox, b)
+    array.push(keepBD, d)
+    b
+// Pine v5 的 and／or 兩邊都會算，所以先檢查陣列大小再讀
+pruneDays(d) =>
+    nq = array.size(dayQ)
+    if nq == 0
+        array.push(dayQ, d)
+    else if array.get(dayQ, nq - 1) != d
+        array.push(dayQ, d)
+    while array.size(dayQ) > keepDays
+        old = array.shift(dayQ)
+        while array.size(keepLD) > 0
+            if array.get(keepLD, 0) > old
+                break
+            array.shift(keepLD)
+            label.delete(array.shift(keepLbl))
+        while array.size(keepBD) > 0
+            if array.get(keepBD, 0) > old
+                break
+            array.shift(keepBD)
+            box.delete(array.shift(keepBox))
 // 參考點（只顯示，不是規則）：0 前高假突破→空、1 前低假突破→多、2 區邊回歸→空、3 區邊回歸→多；每天各最多一次
 var float dayHi = na
 var float dayLo = na
@@ -212,10 +247,14 @@ if n1 > 0
             h1Dist := dir == -1 ? o1 - pVAH : dir == 1 ? pVAL - o1 : na
             h1Ok   := dir != 0 and h1Dist <= pVAH - pVAL
             leanDir := dir == 0 and not na(pPOC) ? (o1 > pPOC ? 1 : o1 < pPOC ? -1 : 0) : 0
-            label.new(bar_index, dir == -1 ? h1 : l1, (dir == 1 ? "今天只找多 ▲" : dir == -1 ? "今天只找空 ▼" : na(pVAL) ? "今天不做 I2（無價值區）" : "今天不做 I2（開在區內）") +
-                      (dir != 0 ? (h1Ok ? "\nH1：會做" : "\nH1：跳過（開太遠）") : leanDir == 1 ? "\n低把握傾向：偏多" : leanDir == -1 ? "\n低把握傾向：偏空（歷史較差）" : ""),
-                      color=dir == 1 ? color.new(color.green, 0) : dir == -1 ? color.new(color.red, 0) : color.new(color.gray, 0),
-                      textcolor=color.white, style=dir == -1 ? label.style_label_down : label.style_label_up, size=size.normal)
+            pruneDays(d1)
+            // 方向標籤：一行小字；H1 放在提示框；不做的日子不畫（資訊在表格）
+            if tfOk and dir != 0
+                regL(label.new(bar_index, dir == -1 ? h1 : l1, dir == 1 ? "只找多 ▲" : "只找空 ▼",
+                          color=dir == 1 ? color.new(color.green, 20) : color.new(color.red, 20), textcolor=color.white,
+                          style=dir == -1 ? label.style_label_down : label.style_label_up, size=size.small,
+                          tooltip=(dir == 1 ? "開盤 " + fmt(o1) + " 在 VAL " + fmt(pVAL) + " 之下 → 今天只找多" : "開盤 " + fmt(o1) + " 在 VAH " + fmt(pVAH) + " 之上 → 今天只找空") +
+                                  "\nH1（研究）：開盤距離 " + fmt(h1Dist) + "／寬度 " + fmt(pVAH - pVAL) + (h1Ok ? " → 會做" : " → 跳過（開太遠）")), d1)
             outside = not na(pdh) and (o1 > pdh or o1 < pdl)
             key = d1 * 10 + 1
             if lastAlertKey < key
@@ -273,19 +312,21 @@ if n1 > 0
                 lastAlertKey := key
                 alert("NQ I2 進場 " + (dir == 1 ? "多 " : "空 ") + fmt(ePx) + "｜止損 " + fmt(slPx) + "｜止盈 v1 " + fmt(tp1Px) +
                       (v2ok ? "／v2 " + fmt(tp2Px) : "") + "｜12:29 未結束就出場", alert.freq_all)
-            i2Lbl := label.new(bar_index, dir == 1 ? l1 : h1, (dir == 1 ? "I2 多 " : "I2 空 ") + fmt(ePx), color=dir == 1 ? color.new(color.green, 0) : color.new(color.red, 0),
-                      textcolor=color.white, style=dir == 1 ? label.style_label_up : label.style_label_down, size=size.small,
-                      tooltip="I2 v1（正式在測的規則）\n進場 " + fmt(ePx) + "\n止盈 " + fmt(tp1Px) + "（+55 點）\n止損 " + fmt(slPx) + "（−145 點）\n12:29（美東）未結束就出場")
-            // 止盈／止損區（和參考點同樣的畫法，顏色較深），延伸到出場那根
-            i2TpB := box.new(bar_index, math.max(ePx, tp1Px), bar_index, math.min(ePx, tp1Px), border_color=color.new(color.green, 30), bgcolor=color.new(color.green, 75))
-            i2SlB := box.new(bar_index, math.max(ePx, slPx), bar_index, math.min(ePx, slPx), border_color=color.new(color.red, 40), bgcolor=color.new(color.red, 82))
+            if tfOk
+                i2Lbl := regL(label.new(bar_index, dir == 1 ? l1 : h1, (dir == 1 ? "I2 多 " : "I2 空 ") + fmt(ePx), color=dir == 1 ? color.new(color.green, 0) : color.new(color.red, 0),
+                          textcolor=color.white, style=dir == 1 ? label.style_label_up : label.style_label_down, size=size.small,
+                          tooltip="I2 v1（正式在測的規則）\n進場 " + fmt(ePx) + "\n止盈 " + fmt(tp1Px) + "（+55 點）\n止損 " + fmt(slPx) + "（−145 點）\n12:29（美東）未結束就出場"), d1)
+                // 止盈／止損區（和參考點同樣的畫法，顏色較深），延伸到出場那根
+                i2TpB := regB(box.new(bar_index, math.max(ePx, tp1Px), bar_index, math.min(ePx, tp1Px), border_color=color.new(color.green, 30), bgcolor=color.new(color.green, 75)), d1)
+                i2SlB := regB(box.new(bar_index, math.max(ePx, slPx), bar_index, math.min(ePx, slPx), border_color=color.new(color.red, 40), bgcolor=color.new(color.red, 82)), d1)
 
         // 紙上追蹤結果（同一分鐘同時碰到 → 算停損，和凍結規則一樣保守）
         if rth1 and closed1 and not na(sigIdx) and i1 >= sigIdx + 1
             hitSL = st >= 2 and (dir == 1 ? l1 <= slPx : h1 >= slPx)
             if st == 2
-                box.set_right(i2TpB, bar_index)
-                box.set_right(i2SlB, bar_index)
+                if tfOk
+                    box.set_right(i2TpB, bar_index)
+                    box.set_right(i2SlB, bar_index)
                 if hitSL
                     st := 3
                     res1 := "止損"
@@ -299,7 +340,8 @@ if n1 > 0
                     res1 := "時間到 " + fmt(c1)
                     i2Pnl := pnlTxt(dir * (c1 - ePx) * 20 - 48)
                 if st == 3
-                    label.set_text(i2Lbl, (dir == 1 ? "I2 多 " : "I2 空 ") + fmt(ePx) + (res1 == "止盈" ? " ✓ " : res1 == "止損" ? " ✗ " : " ⏱ ") + i2Pnl)
+                    if tfOk
+                        label.set_text(i2Lbl, (dir == 1 ? "I2 多 " : "I2 空 ") + fmt(ePx) + (res1 == "止盈" ? " ✓ " : res1 == "止損" ? " ✗ " : " ⏱ ") + i2Pnl)
                     key = d1 * 10 + 5
                     if lastAlertKey < key
                         lastAlertKey := key
@@ -386,13 +428,14 @@ if n1 > 0
                     txt = "參考：" + refName(r) + " " + fmt(o1) + "\n止盈 " + fmt(o1 + sd * TP1) + "／止損 " + fmt(o1 - sd * SL) + "\n" + refHist(r, dir != 0)
                     array.set(refTxt, r, txt)
                     // 標籤只寫幾個字，完整內容放在提示框（滑鼠移上去或點一下才展開）
-                    array.set(refLbl, r, label.new(bar_index, sd == 1 ? l1 : h1, refShort(r), color=color.new(color.gray, 25), textcolor=color.white,
-                              style=sd == 1 ? label.style_label_up : label.style_label_down, size=size.tiny, tooltip=txt))
-                    // 止盈／止損區，延伸到出場那根
-                    array.set(refTp, r, box.new(bar_index, math.max(o1, o1 + sd * TP1), bar_index, math.min(o1, o1 + sd * TP1),
-                              border_color=color.new(color.green, 60), bgcolor=color.new(color.green, 85)))
-                    array.set(refSlB, r, box.new(bar_index, math.max(o1, o1 - sd * SL), bar_index, math.min(o1, o1 - sd * SL),
-                              border_color=color.new(color.red, 70), bgcolor=color.new(color.red, 90)))
+                    if tfOk
+                        array.set(refLbl, r, regL(label.new(bar_index, sd == 1 ? l1 : h1, refShort(r), color=color.new(color.gray, 25), textcolor=color.white,
+                                  style=sd == 1 ? label.style_label_up : label.style_label_down, size=size.tiny, tooltip=txt), d1))
+                        // 止盈／止損區，延伸到出場那根
+                        array.set(refTp, r, regB(box.new(bar_index, math.max(o1, o1 + sd * TP1), bar_index, math.min(o1, o1 + sd * TP1),
+                                  border_color=color.new(color.green, 60), bgcolor=color.new(color.green, 85)), d1))
+                        array.set(refSlB, r, regB(box.new(bar_index, math.max(o1, o1 - sd * SL), bar_index, math.min(o1, o1 - sd * SL),
+                                  border_color=color.new(color.red, 70), bgcolor=color.new(color.red, 90)), d1))
                     refLast := refShort(r) + " " + fmt(o1) + " 持倉中"
                     if refAlertDay != d1
                         refAlertDay := d1
@@ -403,8 +446,9 @@ if n1 > 0
                         alert("NQ 參考點（不是規則）：" + refName(r) + " " + fmt(o1) + "｜" + refHist(r, dir != 0), alert.freq_all)
                 // 進場那一分鐘也要檢查（和回測一樣）
                 if array.get(refSt, r) == 2
-                    box.set_right(array.get(refTp, r), bar_index)
-                    box.set_right(array.get(refSlB, r), bar_index)
+                    if tfOk
+                        box.set_right(array.get(refTp, r), bar_index)
+                        box.set_right(array.get(refSlB, r), bar_index)
                 if array.get(refSt, r) == 2 and closed1
                     e = array.get(refE, r)
                     out = ""
@@ -416,8 +460,9 @@ if n1 > 0
                         out := "時間到 " + str.tostring(sd * (c1 - e) * 20 - 48, "+#,##0;−#,##0")
                     if out != ""
                         array.set(refSt, r, 3)
-                        label.set_text(array.get(refLbl, r), refShort(r) + (str.startswith(out, "止盈") ? " ✓" : str.startswith(out, "止損") ? " ✗" : " ⏱"))
-                        label.set_tooltip(array.get(refLbl, r), array.get(refTxt, r) + "\n→ " + out)
+                        if tfOk
+                            label.set_text(array.get(refLbl, r), refShort(r) + (str.startswith(out, "止盈") ? " ✓" : str.startswith(out, "止損") ? " ✗" : " ⏱"))
+                            label.set_tooltip(array.get(refLbl, r), array.get(refTxt, r) + "\n→ " + out)
                         refLast := refShort(r) + " → " + out
 
         // 查看過去某一天：在那天 16:00 前存下狀態
@@ -463,7 +508,7 @@ var array<label> lvLbls = array.new<label>()
 if barstate.islast
     while array.size(lvLbls) > 0
         label.delete(array.pop(lvLbls))
-    if showLvLbl and not na(pVAL)
+    if tfOk and showLvLbl and not na(pVAL)
         ps = array.from(pVAH, pPOC, pVAL, pdh, pdl)
         ns = array.from("VAH ", "POC ", "VAL ", "前高 ", "前低 ")
         cs = array.from(color.orange, color.gray, color.teal, color.new(color.red, 20), color.new(color.green, 20))
@@ -526,8 +571,8 @@ if tblMode == "精簡" and barstate.islast
                    text_color=color.silver, text_size=size.small,
                    tooltip="灰色標籤＝參考點，不是規則。滑鼠移到標籤上看進場價、止盈止損與歷史表現。" + (refMode == "全部" ? "" : "\n區邊回歸（歷史每筆為負）預設不顯示，可在設定改成「全部」。"))
     if not tfOk
-        table.cell(t, 0, 5, "注意", text_color=color.red, text_size=size.small)
-        table.cell(t, 1, 5, "請改用 15 分K 以下的圖", text_color=color.red, text_size=size.small)
+        table.cell(t, 0, 5, "注意", text_color=color.white, bgcolor=color.new(color.red, 0), text_size=size.normal)
+        table.cell(t, 1, 5, "這個週期不畫標籤：請改用 1～15 分K", text_color=color.white, bgcolor=color.new(color.red, 0), text_size=size.normal)
 
 // 完整模式
 if tblMode == "完整" and barstate.islast
