@@ -3,6 +3,7 @@
 // 研究用，不是投資建議；只畫線與發警報，不下單、不改規則。
 // 圖表可以用 1／5／15 分K；指標內部一律用 1 分K 資料逐分鐘計算（request.security_lower_tf），結果和 1 分K 版相同。
 // v11：超過 15 分K（例如日線）不畫標籤和方框；只保留最近幾個交易日的標籤；方向標籤縮成一行、不做的日子不畫。
+// v12：沒有訊號時一律灰色，寫「等回區才多／空」並顯示離價值區幾點；只有訊號成立或持倉中才用綠／紅色。
 // 使用方式：NQ 單一合約（例如 NQZ2026），建議開「延長交易時段」。換月當天不要用（凍結規則當天不做 I2）。
 indicator("NQ I2 價值區助手（H1 研究版）", shorttitle="I2 VA H1", overlay=true, max_labels_count=500, max_boxes_count=500)
 
@@ -243,17 +244,18 @@ if n1 > 0
                 status := "沒有前一日價值區（換月或資料不足）：今天不做 I2"
             else
                 dir := o1 > pVAH ? -1 : o1 < pVAL ? 1 : 0
-                status := dir == -1 ? "開盤在 VAH 之上 → 只找空" : dir == 1 ? "開盤在 VAL 之下 → 只找多" : "開盤在價值區內 → 今天不做 I2"
+                status := dir == -1 ? "開盤在 VAH 之上 → 等回到價值區才做空" : dir == 1 ? "開盤在 VAL 之下 → 等回到價值區才做多" : "開盤在價值區內 → 今天不做 I2"
             h1Dist := dir == -1 ? o1 - pVAH : dir == 1 ? pVAL - o1 : na
             h1Ok   := dir != 0 and h1Dist <= pVAH - pVAL
             leanDir := dir == 0 and not na(pPOC) ? (o1 > pPOC ? 1 : o1 < pPOC ? -1 : 0) : 0
             pruneDays(d1)
             // 方向標籤：一行小字；H1 放在提示框；不做的日子不畫（資訊在表格）
             if tfOk and dir != 0
-                regL(label.new(bar_index, dir == -1 ? h1 : l1, dir == 1 ? "只找多 ▲" : "只找空 ▼",
-                          color=dir == 1 ? color.new(color.green, 20) : color.new(color.red, 20), textcolor=color.white,
+                regL(label.new(bar_index, dir == -1 ? h1 : l1, (dir == 1 ? "等回區才多" : "等回區才空") + (h1Ok ? "" : "・H1 跳過"),
+                          color=color.new(color.gray, 25), textcolor=color.white,
                           style=dir == -1 ? label.style_label_down : label.style_label_up, size=size.small,
-                          tooltip=(dir == 1 ? "開盤 " + fmt(o1) + " 在 VAL " + fmt(pVAL) + " 之下 → 今天只找多" : "開盤 " + fmt(o1) + " 在 VAH " + fmt(pVAH) + " 之上 → 今天只找空") +
+                          tooltip=(dir == 1 ? "開盤 " + fmt(o1) + " 在 VAL " + fmt(pVAL) + " 之下 → 今天只能做多，而且要等連續 2 根 5 分K 收回價值區" : "開盤 " + fmt(o1) + " 在 VAH " + fmt(pVAH) + " 之上 → 今天只能做空，而且要等連續 2 根 5 分K 收回價值區") +
+                                  "\n這不是進場訊號；訊號成立時會另外出現「I2 多／空」標籤" +
                                   "\nH1（研究）：開盤距離 " + fmt(h1Dist) + "／寬度 " + fmt(pVAH - pVAL) + (h1Ok ? " → 會做" : " → 跳過（開太遠）")), d1)
             outside = not na(pdh) and (o1 > pdh or o1 < pdl)
             key = d1 * 10 + 1
@@ -271,7 +273,7 @@ if n1 > 0
                 pd0 = na(pVAL) ? 0 : c1 > pVAH ? -1 : c1 < pVAL ? 1 : 0
                 alert("NQ 開盤前｜今日 I2 價值區 VAL " + fmt(pVAL) + "、POC " + fmt(pPOC) + "、VAH " + fmt(pVAH) +
                       "｜前一日盤中高 " + fmt(pdh) + "、低 " + fmt(pdl) + "｜盤前預判：" +
-                      (pd0 == 1 ? "偏多（只找多）" : pd0 == -1 ? "偏空（只找空）" : "在區內（可能不做）") + "，歷史準確率 " + (pd0 == 1 ? "97%" : pd0 == -1 ? "90%" : "86%"), alert.freq_all)
+                      (pd0 == 1 ? "在區下方（開盤後要等回區才做多）" : pd0 == -1 ? "在區上方（開盤後要等回區才做空）" : "在區內（可能不做）") + "，歷史準確率 " + (pd0 == 1 ? "97%" : pd0 == -1 ? "90%" : "86%"), alert.freq_all)
 
         // 每個完整 5 分K 收盤（09:34、09:39 … 11:29）檢查
         if rth1 and closed1 and dir != 0 and not done and i1 >= 4 and i1 <= 119 and i1 % 5 == 4
@@ -489,13 +491,18 @@ if n1 > 0
 preDir  = na(pVAL) ? 0 : close > pVAH ? -1 : close < pVAL ? 1 : 0
 preAcc  = mod >= 540 and mod < 570 ? (preDir == 1 ? "97%" : preDir == -1 ? "90%" : "86%") : mod >= 480 and mod < 570 ? (preDir == 0 ? "73%" : "84%") : "較低（美東 08:00 前，只能參考）"
 showDir = isRth ? dir : preDir
+// 只有訊號成立（下一分鐘進場）或持倉中才用綠／紅色；其他時候一律灰色，避免看成「現在去做多／空」
+live    = isRth and (st == 1 or st == 2)
+liveDir = live ? dir : 0
+gapPts  = dir == 1 ? pVAL - close : dir == -1 ? close - pVAH : na   // 現價離價值區幾點（正數＝還在區外）
+waitTxt(d) => (d == 1 ? "等回區才多" : "等回區才空")
 
 // ---------- 畫圖 ----------
 pH = plot(brk ? na : pVAH, "VAH", color=color.new(color.orange, 0), linewidth=2, style=plot.style_linebr)
 pL = plot(brk ? na : pVAL, "VAL", color=color.new(color.teal, 0), linewidth=2, style=plot.style_linebr)
 // 盤中用較明顯的顏色；盤前／夜盤只是預判，顏色很淡，避免整張圖被染色
-bandCol = showDir == 1 ? color.new(color.green, isRth ? 85 : 95) : showDir == -1 ? color.new(color.red, isRth ? 85 : 95) : color.new(color.gray, isRth ? 90 : 96)
-fill(pH, pL, color=bandCol, title="價值區底色（綠＝只找多、紅＝只找空、灰＝不做）")
+bandCol = liveDir == 1 ? color.new(color.green, 85) : liveDir == -1 ? color.new(color.red, 85) : color.new(color.gray, isRth ? 90 : 96)
+fill(pH, pL, color=bandCol, title="價值區底色（綠／紅＝訊號成立或持倉中、灰＝等待或不做）")
 plot(brk ? na : pPOC, "POC", color=color.new(color.gray, 30), linewidth=1, style=plot.style_linebr)
 plot(brk ? na : pdh, "前一日盤中高", color=color.new(color.red, 40), linewidth=1, style=plot.style_circles)
 plot(brk ? na : pdl, "前一日盤中低", color=color.new(color.green, 40), linewidth=1, style=plot.style_circles)
@@ -533,10 +540,12 @@ var table t = table.new(tPos, 2, 18, bgcolor=color.new(color.black, 20), border_
 
 // 精簡模式：三行白話
 if tblMode == "精簡" and barstate.islast
-    cDir = viewOn ? vDir : (isRth ? dir : preDir)
-    cHead = viewOn ? "（" + str.tostring(viewYmd) + "）" + (vDir == 1 ? "只找多 ▲" : vDir == -1 ? "只找空 ▼" : "不做") :
-             isRth ? (dir == 1 ? "只找多 ▲" : dir == -1 ? "只找空 ▼" : "不做") :
-             (preDir == 1 ? "盤前看：可能只找多 ▲" : preDir == -1 ? "盤前看：可能只找空 ▼" : "盤前看：可能不做")
+    cDir = viewOn ? 0 : liveDir
+    cHead = viewOn ? "（" + str.tostring(viewYmd) + "）" + (vDir == 0 ? "不做" : waitTxt(vDir)) :
+             isRth ? (dir == 0 ? "不做" : st == 1 ? (dir == 1 ? "做多訊號 ▲ 下一分鐘進場" : "做空訊號 ▼ 下一分鐘進場") :
+                      st == 2 ? (dir == 1 ? "持倉中（多）" : "持倉中（空）") : st == 3 ? "今天已結束" :
+                      done ? "今天不做（沒有進場機會）" : waitTxt(dir) + (h1Ok ? "" : "｜H1 跳過")) :
+             (preDir == 1 ? "盤前：在區下方，開盤後才定" : preDir == -1 ? "盤前：在區上方，開盤後才定" : "盤前：在區內，可能不做")
     cVa = viewOn ? fmt0(vVAL) + " ～ " + fmt0(vVAH) : fmt0(pVAL) + " ～ " + fmt0(pVAH)
     cNext = viewOn ? (na(vE) ? vStatus : "進場 " + fmt(vE) + "｜結果：" + vRes1) :
              not isRth ? "等美股開盤（美東 09:30）才確定方向" :
@@ -545,7 +554,8 @@ if tblMode == "精簡" and barstate.islast
              st == 2 ? "持倉中｜進場 " + fmt(ePx) + "｜止損 " + fmt(slPx) + "｜止盈 " + fmt(tp1Px) :
              st == 3 ? "已結束：" + res1 + "（" + i2Pnl + "）" :
              done ? "今天已經沒有進場機會" :
-             "等價格回到價值區，連續 2 根 5 分K 收在裡面就進場"
+             gapPts > 0 ? "還沒有訊號：現價離價值區 " + fmt0(gapPts) + " 點；要連續 2 根 5 分K 收在 " + fmt0(pVAL) + "～" + fmt0(pVAH) + " 才" + (dir == 1 ? "做多" : "做空") :
+             "已回到區內：等連續 2 根 5 分K 收在區內才" + (dir == 1 ? "做多" : "做空")
     // 時間列：台灣時間對照（夏令時間自動換算）
     y0 = year(timenow, TZ)
     mo0 = month(timenow, TZ)
@@ -576,17 +586,18 @@ if tblMode == "精簡" and barstate.islast
 
 // 完整模式
 if tblMode == "完整" and barstate.islast
-    dirTxt = isRth ? (dir == 1 ? "今天只找多 ▲" : dir == -1 ? "今天只找空 ▼" : "今天不做 I2") :
-             (preDir == 1 ? "盤前預判：偏多 ▲" : preDir == -1 ? "盤前預判：偏空 ▼" : "盤前預判：在區內（可能不做）")
-    dirBg  = showDir == 1 ? color.new(color.green, 0) : showDir == -1 ? color.new(color.red, 0) : color.new(color.gray, 0)
+    dirTxt = isRth ? (dir == 0 ? "今天不做 I2" : st == 1 ? (dir == 1 ? "做多訊號 ▲ 下一分鐘進場" : "做空訊號 ▼ 下一分鐘進場") :
+                      st == 2 ? (dir == 1 ? "持倉中（多）" : "持倉中（空）") : st == 3 ? "今天已結束" : done ? "今天不做（沒有進場機會）" : waitTxt(dir)) :
+             (preDir == 1 ? "盤前：在區下方，開盤後才定" : preDir == -1 ? "盤前：在區上方，開盤後才定" : "盤前：在區內（可能不做）")
+    dirBg  = liveDir == 1 ? color.new(color.green, 0) : liveDir == -1 ? color.new(color.red, 0) : color.new(color.gray, 0)
     whyTxt = isRth ? ("開盤 " + fmt(open930) + (dir == 1 ? " 在 VAL 之下" : dir == -1 ? " 在 VAH 之上" : " 在價值區內")) :
              ("現價 " + fmt(close) + (preDir == 1 ? " 在 VAL 之下" : preDir == -1 ? " 在 VAH 之上" : " 在價值區內") + "｜歷史準確率 " + preAcc)
     nextTxt = showDir == 1 ? "等價格回到 " + fmt(pVAL) + "～" + fmt(pVAH) + "，連續 2 根 5分K 收在區內 → 做多" :
               showDir == -1 ? "等價格回到 " + fmt(pVAL) + "～" + fmt(pVAH) + "，連續 2 根 5分K 收在區內 → 做空" :
               "開盤若仍在區內，今天不做 I2"
     if viewOn
-        dirTxt := "（" + str.tostring(viewYmd) + "）" + (vDir == 1 ? "只找多 ▲" : vDir == -1 ? "只找空 ▼" : "不做 I2")
-        dirBg  := vDir == 1 ? color.new(color.green, 0) : vDir == -1 ? color.new(color.red, 0) : color.new(color.gray, 0)
+        dirTxt := "（" + str.tostring(viewYmd) + "）" + (vDir == 0 ? "不做 I2" : waitTxt(vDir))
+        dirBg  := color.new(color.gray, 0)
         whyTxt := "開盤 " + fmt(vOpen) + (vDir == 1 ? " 在 VAL 之下" : vDir == -1 ? " 在 VAH 之上" : " 在價值區內或無資料")
         nextTxt := "查看過去模式（設定 → 歷史 → 取消勾選就回到即時）"
     table.cell(t, 0, 0, "I2 價值區助手", text_color=color.white, text_size=size.small)
