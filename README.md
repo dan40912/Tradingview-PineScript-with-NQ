@@ -246,6 +246,18 @@ H1 是一個還在研究中的過濾條件：**開盤價離價值區邊界太遠
 | [08 驗收流程](docs/08_驗收流程.md)、[09 附錄](docs/09_驗收流程附錄1.md) | 前進測試怎麼判斷「支持／否定／證據不足」 |
 | [10 外部審查摘要](docs/10_外部審查摘要.md) | 另一個 AI 模型扮演交易專家審查後找出的錯誤與建議 |
 
+### 歷史資料（可以自己核對）
+| 檔案 | 內容 |
+|---|---|
+| [backtest/i2_v1_trades.csv](backtest/i2_v1_trades.csv) | I2 v1 逐筆回測，162 筆（資料期間 2024-01-02 ～ 2026-10-27，第一筆 2024-01-04、最後一筆 2026-10-23）：日期、方向、進出場時間與價格、止盈止損價、出場原因、扣 $48 後損益，以及當天的前一日價值區 |
+| [backtest/reference_points_trades.csv](backtest/reference_points_trades.csv) | 四種參考點的逐筆回測，共 506 筆（只顯示，不是規則） |
+| [backtest/forward_test_trades.csv](backtest/forward_test_trades.csv) | 2026-10-20 起的紙上前進測試紀錄（v1、v2） |
+| [data/](data/) | NQ、ES 的 1 分 K 連續合約原始資料（2024-01-02 ～ 2026-10-19，壓縮成 `.csv.gz`），加上每日品質、換月和缺漏分鐘清單；說明見 [data/README.md](data/README.md) |
+| [history/研究進度紀錄.md](history/研究進度紀錄.md) | 研究過程的逐步紀錄（公開版，已移除個人帳戶、平台、路徑） |
+| [CHANGELOG.md](CHANGELOG.md) | 指標每一版改了什麼 |
+
+上面「最終回測」表格的數字，可以用這兩個 CSV 加總重現。
+
 ---
 
 ## 安裝
