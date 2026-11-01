@@ -27,3 +27,5 @@
 |---|---|
 | `python3 timemachine_test.py` | 用 trader-timemachine 的算法（前 60 天同時段 5 分K 隨機重組）當「沒有方向性」的對照組，比較實際損益 |
 | `python3 sizing_rules_test.py` | 固定每筆風險的口數（trader-budget），以及它的預設風控（reward:risk ≥ 1、不能放空）套在組合 D 上 |
+| `python3 scanner_test.py` | 日線趨勢 scanner（均線、動能、RSI、效率比、20 日新高新低）能不能改善組合 D（`docs/13`） |
+| `python3 multimarket_test.py` | NQ、ES 同時掃，誰先出訊號就做誰 |
