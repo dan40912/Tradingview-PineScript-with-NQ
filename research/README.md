@@ -20,3 +20,10 @@
 | `strat.py` | 所有策略：`i2`、`trend`（順勢突破）、`pullback`、`orb`、`ibfade`、`vwap_pb`、`pdfade` |
 
 有新的 1 分K 資料時，把 `eng.py` 裡的檔名改掉，從步驟 1 重跑即可。
+
+## 借用 day-trader-skill 的想法（`docs/12`）
+
+| 指令 | 做什麼 |
+|---|---|
+| `python3 timemachine_test.py` | 用 trader-timemachine 的算法（前 60 天同時段 5 分K 隨機重組）當「沒有方向性」的對照組，比較實際損益 |
+| `python3 sizing_rules_test.py` | 固定每筆風險的口數（trader-budget），以及它的預設風控（reward:risk ≥ 1、不能放空）套在組合 D 上 |
