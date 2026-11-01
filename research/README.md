@@ -30,3 +30,4 @@
 | `python3 scanner_test.py` | 日線趨勢 scanner（均線、動能、RSI、效率比、20 日新高新低）能不能改善組合 D（`docs/13`） |
 | `python3 multimarket_test.py` | NQ、ES 同時掃，誰先出訊號就做誰 |
 | `python3 scanner_replay.py` | 每次進場當下跑 scanner（日線型態、ORB15、Time Machine、VWAP），對照實際結果；畫出 2026-10 每筆的圖（`docs/14`） |
+| `python3 winrate_opt.py` → `winrate_select.py` → `winrate_portfolio.py` | 勝率最佳化：成交量確認、ATR 停損、滾動歷史回放、VWAP、ORB15、TP/SL（`docs/15`） |
