@@ -32,3 +32,14 @@
 | `python3 scanner_replay.py` | 每次進場當下跑 scanner（日線型態、ORB15、Time Machine、VWAP），對照實際結果；畫出 2026-10 每筆的圖（`docs/14`） |
 | `python3 winrate_opt.py` → `winrate_select.py` → `winrate_portfolio.py` | 勝率最佳化：成交量確認、ATR 停損、滾動歷史回放、VWAP、ORB15、TP/SL（`docs/15`） |
 | `python3 crash_days.py` | 劇烈跳空日（開盤離價值區 ≥ 1%、H1 跳過、前日範圍外）的歷史走勢和各種做法（`docs/16`） |
+
+## 10/20～10/30（Yahoo，`docs/17`）
+`python3 build_cache.py --yahoo` 會把 `data/*_1m_yahoo_20261016-20261030.csv.gz` 接在主檔後面。之後：
+
+| 指令 | 做什麼 |
+|---|---|
+| `python3 oct_full.py` | 2026-10 全月，每個策略的逐筆和合計 |
+| `python3 oct30_variants.py` | 10/30 大跌日，順勢規則的幾個變化：當天、歷史、10 月 |
+| `python3 scanner_replay.py` | 10 月每筆進場的圖（會包含 10/20～10/30） |
+
+跑完記得 `python3 build_cache.py` 回到只用主檔，docs/11～16 的數字才會一樣。

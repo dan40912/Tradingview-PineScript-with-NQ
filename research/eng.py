@@ -23,9 +23,11 @@ def value_area(lo_, hi_, vol):
         else: lo -= 1; acc += max(0.0, lv)
     return lo * BIN, (hi + 1) * BIN, poc * BIN
 
-def build(sym="NQ", scale=1.0):
+def build(sym="NQ", scale=1.0, extra=None):
     df = pd.read_csv(f"{REPO}/data/{sym}_1m_continuous_20240102-20261019.csv.gz",
                      usecols=["timestamp_utc","open","high","low","close","volume","contract","trade_date"])
+    if extra:   # 接在後面的資料（例如 Yahoo 的 10/20 之後），只取主檔最後一天之後的交易日
+        e = pd.read_csv(extra, usecols=df.columns.tolist()); df = pd.concat([df, e[e.trade_date > df.trade_date.max()]], ignore_index=True)
     t = pd.to_datetime(df.timestamp_utc).dt.tz_convert("America/New_York")
     df["m"] = (t.dt.hour * 60 + t.dt.minute).values
     for c in ("open","high","low","close"): df[c] *= scale

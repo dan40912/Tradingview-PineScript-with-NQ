@@ -85,7 +85,7 @@ X["方向一致_日線"] = np.where(X.daily_bias == 0, "日線沒有偏向", np.
 X["方向一致_VWAP"] = np.where(X.vwap_side == X.side, "同方向", "反方向")
 # ---------- 2026-10 逐筆 ----------
 O = X[X.date >= "2026-10-01"].sort_values(["date", "ei"])
-print("2026-10（10/1～10/19）每一次進場訊號：scanner 當下的判斷 vs 實際結果\n")
+print(f"2026-10（到 {nq[-1]['date']}）每一次進場訊號：scanner 當下的判斷 vs 實際結果\n")
 for _, r in O.iterrows():
     print(f"{r.date} {hh(r.ei)} {r.rule:<14} {'多' if r.side == 1 else '空'}｜日線型態：{r.daily}｜ORB15：{r.orb_txt}｜VWAP：{'上' if r.vwap_side > 0 else '下'}"
           f"｜Time Machine：先碰TP {r.tm_tp:.0%}、先碰SL {r.tm_sl:.0%}、期望值 {r.tm_ev:+,.0f} → {r.tm_verdict}｜實際：{r.res} {r.pnl:+,.0f}")
