@@ -29,3 +29,4 @@
 | `python3 sizing_rules_test.py` | 固定每筆風險的口數（trader-budget），以及它的預設風控（reward:risk ≥ 1、不能放空）套在組合 D 上 |
 | `python3 scanner_test.py` | 日線趨勢 scanner（均線、動能、RSI、效率比、20 日新高新低）能不能改善組合 D（`docs/13`） |
 | `python3 multimarket_test.py` | NQ、ES 同時掃，誰先出訊號就做誰 |
+| `python3 scanner_replay.py` | 每次進場當下跑 scanner（日線型態、ORB15、Time Machine、VWAP），對照實際結果；畫出 2026-10 每筆的圖（`docs/14`） |
