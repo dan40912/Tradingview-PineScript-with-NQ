@@ -43,3 +43,6 @@
 | `python3 scanner_replay.py` | 10 月每筆進場的圖（會包含 10/20～10/30） |
 
 跑完記得 `python3 build_cache.py` 回到只用主檔，docs/11～16 的數字才會一樣。
+
+## 每天的盤前／盤中掃描
+`python3 today_scan.py`：直接抓 Yahoo 最近 5 天的 NQZ26、ESZ26 1 分K，算出今天的價值區、前日高低、夜盤高低、ES 位置，列出 09:30 開盤後的三種劇本和各自的 TP／SL。換月後要把檔案開頭的合約代碼改掉（例如 NQH27.CME）。
