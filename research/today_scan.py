@@ -28,7 +28,7 @@ def levels(df):
     rth = df[(df.m >= 570) & (df.m <= 959)]
     prev = rth[rth.td < today].td.max(); p = rth[rth.td == prev]
     val, vah, poc = value_area(p.low.values, p.high.values, p.volume.values)
-    t = df[df.td == today]; on = t[t.m < 570] if len(t) else t
+    t = df[df.td == today]; on = t[(t.m < 570) | (t.m >= 1080)] if len(t) else t   # 夜盤＝前一天 18:00 到今天 09:29
     return dict(today=today, prev=prev, prev_bars=len(p), val=val, vah=vah, poc=poc, pdh=p.high.max(), pdl=p.low.min(), pclose=p.close.iloc[-1],
                 on_hi=on.high.max() if len(on) else np.nan, on_lo=on.low.min() if len(on) else np.nan,
                 last=df.close.iloc[-1], last_et=df.et.iloc[-1], rth_today=t[(t.m >= 570) & (t.m <= 959)])
