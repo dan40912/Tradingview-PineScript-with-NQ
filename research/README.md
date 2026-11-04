@@ -49,3 +49,4 @@
 `python3 day_status.py 2026-11-03`：某一天（可以是盤中）每條規則的狀態：開盤位置、IB、5 分K、訊號、TP／SL、結果或持倉中。需要先把當天資料接進快取（`build_cache.py` 的 `extra` 參數）。
 `python3 overnight_v.py`：夜盤先大跌、到美東 01:00 又拉回一半以上的日子，美股盤中後來怎麼走。
 `python3 va_stats.py`：價值區的行為統計（開盤位置、回到價值區的機率、POC、區寬）；`python3 va_chart.py 合併CSV 日期 輸出PNG`：畫某一天的成交量分布和價值區（`docs/18`）。
+`python3 live_scan.py`：盤前會列出今天的價位和劇本；開盤後列出組合 D 每條規則的狀態（已進場的 TP／SL、還在等什麼、或今天不適用）。
