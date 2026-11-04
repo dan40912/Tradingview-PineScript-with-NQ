@@ -50,3 +50,4 @@
 `python3 overnight_v.py`：夜盤先大跌、到美東 01:00 又拉回一半以上的日子，美股盤中後來怎麼走。
 `python3 va_stats.py`：價值區的行為統計（開盤位置、回到價值區的機率、POC、區寬）；`python3 va_chart.py 合併CSV 日期 輸出PNG`：畫某一天的成交量分布和價值區（`docs/18`）。
 `python3 live_scan.py`：盤前會列出今天的價位和劇本；開盤後列出組合 D 每條規則的狀態（已進場的 TP／SL、還在等什麼、或今天不適用）。
+`python3 hs_pattern.py`、`python3 exhaustion.py`：頭肩頂／頭肩底、衝太遠後跌破（站回）VWAP 的反轉規則回測（`docs/19`）。
