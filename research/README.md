@@ -48,3 +48,4 @@
 `python3 today_scan.py`：直接抓 Yahoo 最近 5 天的 NQZ26、ESZ26 1 分K，算出今天的價值區、前日高低、夜盤高低、ES 位置，列出 09:30 開盤後的三種劇本和各自的 TP／SL。換月後要把檔案開頭的合約代碼改掉（例如 NQH27.CME）。
 `python3 day_status.py 2026-11-03`：某一天（可以是盤中）每條規則的狀態：開盤位置、IB、5 分K、訊號、TP／SL、結果或持倉中。需要先把當天資料接進快取（`build_cache.py` 的 `extra` 參數）。
 `python3 overnight_v.py`：夜盤先大跌、到美東 01:00 又拉回一半以上的日子，美股盤中後來怎麼走。
+`python3 va_stats.py`：價值區的行為統計（開盤位置、回到價值區的機率、POC、區寬）；`python3 va_chart.py 合併CSV 日期 輸出PNG`：畫某一天的成交量分布和價值區（`docs/18`）。
