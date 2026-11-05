@@ -31,8 +31,38 @@ META_Q = [0.55, 0.65, 0.75]   # keep I2 trade when p >= q   (chosen on discovery
 
 # ------------------------------------------------------------------ models
 def model_l1(C=0.05):
+    # intercept_scaling large so the (penalised) liblinear intercept can reach the base rate
     return make_pipeline(SimpleImputer(strategy="median"), StandardScaler(),
-                         LogisticRegression(penalty="l1", C=C, solver="liblinear", max_iter=500))
+                         LogisticRegression(penalty="l1", C=C, solver="liblinear", max_iter=500, intercept_scaling=100.0))
+
+
+class L1CV:
+    """L1-logistic whose C is picked inside the training window by an expanding time-series CV
+    (3 splits, AUC).  No information from the test month is used."""
+    CS = [0.01, 0.03, 0.1, 0.3]
+
+    def fit(self, X, y):
+        n = len(y); cuts = [int(n * f) for f in (0.55, 0.7, 0.85, 1.0)]
+        best, bestC = -1, self.CS[0]
+        for C in self.CS:
+            aucs = []
+            for a, b in zip(cuts[:-1], cuts[1:]):
+                if len(np.unique(y[:a])) < 2 or len(np.unique(y[a:b])) < 2:
+                    continue
+                m = model_l1(C).fit(X[:a], y[:a])
+                aucs.append(roc_auc_score(y[a:b], m.predict_proba(X[a:b])[:, 1]))
+            sc = np.mean(aucs) if aucs else -1
+            if sc > best:
+                best, bestC = sc, C
+        self.C_ = bestC
+        self.m_ = model_l1(bestC).fit(X, y)
+        return self
+
+    def predict_proba(self, X):
+        return self.m_.predict_proba(X)
+
+    def __getitem__(self, k):
+        return self.m_[k]
 
 
 def model_gbm():
@@ -41,7 +71,12 @@ def model_gbm():
                               reg_lambda=5.0, n_jobs=1, verbose=-1, random_state=0)
 
 
-MODELS = {"L1": model_l1, "GBM": model_gbm}
+def model_gbm_small():
+    m = model_gbm(); m.set_params(min_child_samples=8, n_estimators=80); return m
+
+
+MODELS = {"L1": model_l1, "L1CV": L1CV, "GBM": model_gbm, "GBMs": model_gbm_small}
+MODELS_FOR = {"dir": ["L1", "L1CV", "GBM"], "hit": ["L1", "L1CV", "GBM"], "meta": ["L1", "L1CV", "GBM", "GBMs"]}
 
 
 def fit_predict(mname, Xtr, ytr, Xte):
@@ -238,7 +273,7 @@ def l1_stability(fold_models, cols):
     for m, mdl, idx in fold_models:
         if mdl is None:
             continue
-        coef = mdl[-1].coef_[0]
+        coef = (mdl.m_ if hasattr(mdl, "m_") else mdl)[-1].coef_[0]
         rows.append(pd.Series(coef, index=cols, name=m))
     if not rows:
         return pd.DataFrame()
@@ -278,7 +313,7 @@ def main():
         kind = d.kind.iloc[0]
         spec = d.h.iloc[0] if kind == "dir" else (d.x.iloc[0] if kind == "hit" else None)
         for fs, fcols in fsets.items():
-            for mname in MODELS:
+            for mname in MODELS_FOR[kind]:
                 n_variants += 1
                 Xfun = meta_signed if kind == "meta" else None
                 disc, folds, X = walk_forward(d, fcols, mname, Xfun)
@@ -324,13 +359,26 @@ def main():
                 # importance & stability on the ALL feature set only
                 if fs == "ALL":
                     imp_store[(tname, mname)] = perm_importance(disc, folds, X, fcols, mname, reps=2)
-                    if mname == "L1":
+                    if mname in ("L1", "L1CV"):
                         stab_store[(tname, mname)] = l1_stability(folds, fcols)
                     else:
                         jac, freq = gbm_stability(folds, fcols)
                         stab_store[(tname, mname)] = (jac, freq)
                 print(f"{tname:16s} {fs:7s} {mname:3s} wfAUC={s_wf.get('auc')} valAUC={s_val.get('auc')} "
                       f"chosen={row.get('chosen')} val_avg={row.get('val_trade_avg')}  {time.time()-t0:.0f}s", flush=True)
+    # naive trading baselines: always long / always short at the same decision points
+    for tname, d in tasks.items():
+        kind = d.kind.iloc[0]
+        if kind == "meta":
+            for per, sub in [("wf_disc", d[(d.split == "discovery") & (d.date.str[:7] >= WF_START)]), ("validation", d[d.split == "validation"])]:
+                trade_rows.append({"task": tname, "fset": "-", "model": "baseline", "period": per, "rule": "I2 unfiltered",
+                                   "n": len(sub), "avg": round(sub.pnl.mean(), 1), "total": round(sub.pnl.sum(), 0)})
+            continue
+        spec = d.h.iloc[0] if kind == "dir" else d.x.iloc[0]
+        for per, sub, nd in [("wf_disc", d[(d.split == "discovery") & (d.date.str[:7] >= WF_START)], nd_wf), ("validation", d[d.split == "validation"], nd_val)]:
+            for dr, nm in [(0.99, "always long"), (0.01, "always short")]:
+                tr = sim.run_signals(g, trade_signals(sub.assign(p=dr), kind, 0.0, spec))
+                trade_rows.append({"task": tname, "fset": "-", "model": "baseline", "period": per, "rule": nm, **summ(tr, nd)})
     res = pd.DataFrame(rows); res.to_csv(os.path.join(OUT, "model_results.csv"), index=False)
     pd.DataFrame(trade_rows).to_csv(os.path.join(OUT, "trade_results.csv"), index=False)
     pd.to_pickle((imp_store, stab_store), os.path.join(OUT, "importance.pkl"))
