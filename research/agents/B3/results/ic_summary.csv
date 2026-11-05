@@ -1,0 +1,4 @@
+,observed,null_mean,null_p95,p_value
+same sign 2024 & 2025H1,857,741.7,844.15,0.025
+A: same sign & |t|>=2 both,33,1.5,5.099999999999966,0.0
+B: same sign & |IC|>=0.05 both,346,206.1,286.09999999999997,0.005

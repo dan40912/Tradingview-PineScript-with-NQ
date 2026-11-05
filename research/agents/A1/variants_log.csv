@@ -1,0 +1,577 @@
+family,name,n,avg,sharpe_ann
+orb_break+candle,ORB5 cut11:00 or_eod,373,203.3,1.02
+orb_break+candle,ORB5 cut11:00 half_eod,373,-45.5,-0.39
+orb_break+candle,ORB5 cut11:00 r_k1,373,50.8,0.63
+orb_break+candle,ORB5 cut11:00 r_k2,373,32.5,0.29
+orb_break+candle,ORB5 cut11:00 r_k3,373,5.0,0.04
+orb_break+candle,ORB5 cut11:00 fixed55,373,13.3,0.14
+orb_break+candle,ORB5 cut13:00 or_eod,374,204.8,1.03
+orb_break+candle,ORB5 cut13:00 half_eod,374,-43.4,-0.37
+orb_break+candle,ORB5 cut13:00 r_k1,374,52.7,0.65
+orb_break+candle,ORB5 cut13:00 r_k2,374,34.4,0.31
+orb_break+candle,ORB5 cut13:00 r_k3,374,7.0,0.06
+orb_break+candle,ORB5 cut13:00 fixed55,373,13.3,0.14
+orb_break+candle,ORB15 cut11:00 or_eod,369,216.6,1.05
+orb_break+candle,ORB15 cut11:00 half_eod,369,72.8,0.51
+orb_break+candle,ORB15 cut11:00 r_k1,369,106.5,0.87
+orb_break+candle,ORB15 cut11:00 r_k2,369,192.3,1.19
+orb_break+candle,ORB15 cut11:00 r_k3,369,247.4,1.31
+orb_break+candle,ORB15 cut11:00 fixed55,369,-46.6,-0.48
+orb_break+candle,ORB15 cut13:00 or_eod,372,225.8,1.1
+orb_break+candle,ORB15 cut13:00 half_eod,372,83.1,0.59
+orb_break+candle,ORB15 cut13:00 r_k1,372,115.6,0.95
+orb_break+candle,ORB15 cut13:00 r_k2,372,201.6,1.26
+orb_break+candle,ORB15 cut13:00 r_k3,372,256.3,1.37
+orb_break+candle,ORB15 cut13:00 fixed55,371,-41.3,-0.43
+orb_break+candle,ORB30 cut11:00 or_eod,343,259.4,1.18
+orb_break+candle,ORB30 cut11:00 half_eod,343,2.5,0.02
+orb_break+candle,ORB30 cut11:00 r_k1,343,211.8,1.4
+orb_break+candle,ORB30 cut11:00 r_k2,343,185.3,1.05
+orb_break+candle,ORB30 cut11:00 r_k3,343,213.3,1.1
+orb_break+candle,ORB30 cut11:00 fixed55,343,119.1,1.35
+orb_break+candle,ORB30 cut13:00 or_eod,366,229.7,1.11
+orb_break+candle,ORB30 cut13:00 half_eod,366,0.8,0.01
+orb_break+candle,ORB30 cut13:00 r_k1,366,185.2,1.28
+orb_break+candle,ORB30 cut13:00 r_k2,366,156.2,0.93
+orb_break+candle,ORB30 cut13:00 r_k3,366,182.5,0.99
+orb_break+candle,ORB30 cut13:00 fixed55,363,103.2,1.21
+orb_break+candle,ORB60 cut11:00 or_eod,204,46.8,0.21
+orb_break+candle,ORB60 cut11:00 half_eod,204,-47.7,-0.26
+orb_break+candle,ORB60 cut11:00 r_k1,204,62.6,0.31
+orb_break+candle,ORB60 cut11:00 r_k2,204,45.9,0.21
+orb_break+candle,ORB60 cut11:00 r_k3,204,49.4,0.23
+orb_break+candle,ORB60 cut11:00 fixed55,204,52.8,0.49
+orb_break+candle,ORB60 cut13:00 or_eod,321,10.8,0.06
+orb_break+candle,ORB60 cut13:00 half_eod,321,-69.3,-0.45
+orb_break+candle,ORB60 cut13:00 r_k1,321,-35.1,-0.23
+orb_break+candle,ORB60 cut13:00 r_k2,321,13.3,0.07
+orb_break+candle,ORB60 cut13:00 r_k3,321,9.7,0.05
+orb_break+candle,ORB60 cut13:00 fixed55,310,-12.0,-0.14
+orb_break+candle,CANDLE1 kNone,371,121.1,0.73
+orb_break+candle,CANDLE1 k2,371,-42.9,-0.94
+orb_break+candle,CANDLE1 k5,371,-9.5,-0.14
+orb_break+candle,CANDLE1 k10,371,17.3,0.19
+orb_break+candle,CANDLE5 kNone,374,120.7,0.66
+orb_break+candle,CANDLE5 k2,374,9.8,0.11
+orb_break+candle,CANDLE5 k5,374,35.4,0.29
+orb_break+candle,CANDLE5 k10,374,25.1,0.19
+orb_break+candle,CANDLE15 kNone,374,320.0,1.56
+orb_break+candle,CANDLE15 k2,374,143.0,1.1
+orb_break+candle,CANDLE15 k5,374,219.8,1.31
+orb_break+candle,CANDLE15 k10,374,275.1,1.43
+gap,"fill pdc [0.05,0.2) st0.3 tpRef 12:00",104,-1.5,-0.01
+gap,"fill pdc [0.05,0.2) st0.3 tpRef EOD",104,-14.4,-0.1
+gap,"go pdc [0.05,0.2) st0.3 EOD",104,-235.5,-0.74
+gap,"go pdc [0.05,0.2) st0.3 conf10:00 EOD",53,6.0,0.02
+gap,"fill pdc [0.05,0.2) st0.6 tpRef 12:00",104,3.3,0.02
+gap,"fill pdc [0.05,0.2) st0.6 tpRef EOD",104,-83.1,-0.38
+gap,"go pdc [0.05,0.2) st0.6 EOD",104,151.4,0.36
+gap,"go pdc [0.05,0.2) st0.6 conf10:00 EOD",53,-44.1,-0.1
+gap,"fill pdc [0.2,0.4) st0.3 tpRef 12:00",83,-132.3,-0.6
+gap,"fill pdc [0.2,0.4) st0.3 tpRef EOD",83,-160.7,-0.7
+gap,"go pdc [0.2,0.4) st0.3 EOD",83,84.1,0.25
+gap,"go pdc [0.2,0.4) st0.3 conf10:00 EOD",44,20.9,0.05
+gap,"fill pdc [0.2,0.4) st0.6 tpRef 12:00",83,-260.7,-0.91
+gap,"fill pdc [0.2,0.4) st0.6 tpRef EOD",83,-302.2,-1.0
+gap,"go pdc [0.2,0.4) st0.6 EOD",83,-174.0,-0.42
+gap,"go pdc [0.2,0.4) st0.6 conf10:00 EOD",44,-63.4,-0.13
+gap,"fill pdc [0.4,0.7) st0.3 tpRef 12:00",79,79.2,0.27
+gap,"fill pdc [0.4,0.7) st0.3 tpRef EOD",79,84.9,0.25
+gap,"go pdc [0.4,0.7) st0.3 EOD",79,-6.9,-0.02
+gap,"go pdc [0.4,0.7) st0.3 conf10:00 EOD",40,140.6,0.31
+gap,"fill pdc [0.4,0.7) st0.6 tpRef 12:00",79,-35.4,-0.1
+gap,"fill pdc [0.4,0.7) st0.6 tpRef EOD",79,-70.1,-0.17
+gap,"go pdc [0.4,0.7) st0.6 EOD",79,-126.3,-0.28
+gap,"go pdc [0.4,0.7) st0.6 conf10:00 EOD",40,199.4,0.38
+gap,"fill pdc [0.7,3) st0.3 tpRef 12:00",63,310.6,0.76
+gap,"fill pdc [0.7,3) st0.3 tpRef EOD",63,354.4,0.81
+gap,"go pdc [0.7,3) st0.3 EOD",63,75.1,0.15
+gap,"go pdc [0.7,3) st0.3 conf10:00 EOD",29,511.1,0.79
+gap,"fill pdc [0.7,3) st0.6 tpRef 12:00",63,313.5,0.68
+gap,"fill pdc [0.7,3) st0.6 tpRef EOD",63,496.3,0.88
+gap,"go pdc [0.7,3) st0.6 EOD",63,-192.3,-0.32
+gap,"go pdc [0.7,3) st0.6 conf10:00 EOD",29,280.7,0.36
+gap,"fill pdr [0.05,0.2) st0.3 tpRef 12:00",43,-326.8,-1.3
+gap,"fill pdr [0.05,0.2) st0.3 tpRef EOD",43,-326.8,-1.3
+gap,"go pdr [0.05,0.2) st0.3 EOD",43,369.2,0.66
+gap,"go pdr [0.05,0.2) st0.3 conf10:00 EOD",25,850.2,1.25
+gap,"fill pdr [0.05,0.2) st0.6 tpRef 12:00",43,-459.7,-1.32
+gap,"fill pdr [0.05,0.2) st0.6 tpRef EOD",43,-479.4,-1.37
+gap,"go pdr [0.05,0.2) st0.6 EOD",43,372.6,0.57
+gap,"go pdr [0.05,0.2) st0.6 conf10:00 EOD",25,505.1,0.63
+gap,"fill pdr [0.2,0.4) st0.3 tpRef 12:00",27,-136.1,-0.36
+gap,"fill pdr [0.2,0.4) st0.3 tpRef EOD",27,-315.4,-0.73
+gap,"go pdr [0.2,0.4) st0.3 EOD",27,378.1,0.53
+gap,"go pdr [0.2,0.4) st0.3 conf10:00 EOD",17,622.4,0.79
+gap,"fill pdr [0.2,0.4) st0.6 tpRef 12:00",27,-246.8,-0.54
+gap,"fill pdr [0.2,0.4) st0.6 tpRef EOD",27,-474.9,-0.85
+gap,"go pdr [0.2,0.4) st0.6 EOD",27,168.8,0.2
+gap,"go pdr [0.2,0.4) st0.6 conf10:00 EOD",17,179.9,0.2
+gap,"fill pdr [0.4,0.7) st0.3 tpRef 12:00",28,541.6,0.97
+gap,"fill pdr [0.4,0.7) st0.3 tpRef EOD",28,690.3,1.16
+gap,"go pdr [0.4,0.7) st0.3 EOD",28,-557.6,-0.99
+gap,"go pdr [0.4,0.7) st0.3 conf10:00 EOD",13,-533.2,-0.68
+gap,"fill pdr [0.4,0.7) st0.6 tpRef 12:00",28,461.4,0.78
+gap,"fill pdr [0.4,0.7) st0.6 tpRef EOD",28,797.8,1.25
+gap,"go pdr [0.4,0.7) st0.6 EOD",28,-1063.8,-1.4
+gap,"go pdr [0.4,0.7) st0.6 conf10:00 EOD",13,-567.0,-0.62
+gap,"fill pdr [0.7,3) st0.3 tpRef 12:00",27,434.1,0.61
+gap,"fill pdr [0.7,3) st0.3 tpRef EOD",27,390.8,0.55
+gap,"go pdr [0.7,3) st0.3 EOD",27,708.1,0.8
+gap,"go pdr [0.7,3) st0.3 conf10:00 EOD",10,1593.7,1.35
+gap,"fill pdr [0.7,3) st0.6 tpRef 12:00",27,392.1,0.49
+gap,"fill pdr [0.7,3) st0.6 tpRef EOD",27,384.5,0.44
+gap,"go pdr [0.7,3) st0.6 EOD",27,253.9,0.24
+gap,"go pdr [0.7,3) st0.6 conf10:00 EOD",10,1457.8,1.15
+orb_filters,ORB15 or_eod,371,224.4,1.09
+orb_filters,ORB15 or_eod | OR narrow (<q33),121,341.5,1.26
+orb_filters,ORB15 or_eod | OR mid,120,-128.1,-0.48
+orb_filters,ORB15 or_eod | OR wide (>q67),121,448.4,0.89
+orb_filters,ORB15 or_eod | with gap dir,181,59.5,0.25
+orb_filters,ORB15 or_eod | against gap,183,441.8,1.28
+orb_filters,ORB15 or_eod | open in VA,140,-318.4,-1.22
+orb_filters,"ORB15 or_eod | open outVA, brk same side",112,221.9,0.7
+orb_filters,"ORB15 or_eod | open outVA, brk back toward VA",119,865.4,1.81
+orb_filters,ORB15 or_eod | open in prior range,223,57.7,0.2
+orb_filters,ORB15 or_eod | open out prior range,148,475.6,1.61
+orb_filters,ORB15 or_eod | ATR high,181,178.0,0.49
+orb_filters,ORB15 or_eod | ATR low,190,268.6,1.32
+orb_filters,ORB15 r_k2,371,200.2,1.25
+orb_filters,ORB15 r_k2 | OR narrow (<q33),121,287.7,1.35
+orb_filters,ORB15 r_k2 | OR mid,120,7.2,0.03
+orb_filters,ORB15 r_k2 | OR wide (>q67),121,280.4,0.76
+orb_filters,ORB15 r_k2 | with gap dir,181,105.4,0.49
+orb_filters,ORB15 r_k2 | against gap,183,343.6,1.4
+orb_filters,ORB15 r_k2 | open in VA,140,-268.1,-1.17
+orb_filters,"ORB15 r_k2 | open outVA, brk same side",112,160.4,0.56
+orb_filters,"ORB15 r_k2 | open outVA, brk back toward VA",119,788.4,2.44
+orb_filters,ORB15 r_k2 | open in prior range,223,-25.7,-0.13
+orb_filters,ORB15 r_k2 | open out prior range,148,540.5,2.0
+orb_filters,ORB15 r_k2 | ATR high,181,138.5,0.5
+orb_filters,ORB15 r_k2 | ATR low,190,258.9,1.54
+orb_filters,ORB30 or_eod,363,236.0,1.13
+orb_filters,ORB30 or_eod | OR narrow (<q33),118,317.2,1.13
+orb_filters,ORB30 or_eod | OR mid,118,287.2,0.89
+orb_filters,ORB30 or_eod | OR wide (>q67),118,115.0,0.24
+orb_filters,ORB30 or_eod | with gap dir,176,61.1,0.25
+orb_filters,ORB30 or_eod | against gap,180,450.9,1.31
+orb_filters,ORB30 or_eod | open in VA,137,-457.9,-1.72
+orb_filters,"ORB30 or_eod | open outVA, brk same side",105,512.2,1.53
+orb_filters,"ORB30 or_eod | open outVA, brk back toward VA",121,781.9,1.68
+orb_filters,ORB30 or_eod | open in prior range,218,10.1,0.03
+orb_filters,ORB30 or_eod | open out prior range,145,575.7,2.01
+orb_filters,ORB30 or_eod | ATR high,177,200.8,0.54
+orb_filters,ORB30 or_eod | ATR low,186,269.5,1.32
+orb_filters,ORB30 r_k1,363,191.0,1.31
+orb_filters,ORB30 r_k1 | OR narrow (<q33),118,303.4,1.56
+orb_filters,ORB30 r_k1 | OR mid,118,55.8,0.24
+orb_filters,ORB30 r_k1 | OR wide (>q67),118,168.7,0.51
+orb_filters,ORB30 r_k1 | with gap dir,176,113.9,0.55
+orb_filters,ORB30 r_k1 | against gap,180,305.6,1.44
+orb_filters,ORB30 r_k1 | open in VA,137,-290.9,-1.27
+orb_filters,"ORB30 r_k1 | open outVA, brk same side",105,279.5,1.07
+orb_filters,"ORB30 r_k1 | open outVA, brk back toward VA",121,659.9,2.44
+orb_filters,ORB30 r_k1 | open in prior range,218,-91.1,-0.5
+orb_filters,ORB30 r_k1 | open out prior range,145,615.2,2.56
+orb_filters,ORB30 r_k1 | ATR high,177,245.6,0.96
+orb_filters,ORB30 r_k1 | ATR low,186,139.1,0.93
+orb_filters,ORB60 or_eod,321,10.8,0.06
+orb_filters,ORB60 or_eod | OR narrow (<q33),104,18.3,0.07
+orb_filters,ORB60 or_eod | OR mid,104,-31.2,-0.09
+orb_filters,ORB60 or_eod | OR wide (>q67),104,71.2,0.21
+orb_filters,ORB60 or_eod | with gap dir,149,66.5,0.28
+orb_filters,ORB60 or_eod | against gap,166,-6.5,-0.02
+orb_filters,ORB60 or_eod | open in VA,119,-291.6,-1.14
+orb_filters,"ORB60 or_eod | open outVA, brk same side",87,487.4,1.5
+orb_filters,"ORB60 or_eod | open outVA, brk back toward VA",115,-36.8,-0.1
+orb_filters,ORB60 or_eod | open in prior range,190,-14.2,-0.06
+orb_filters,ORB60 or_eod | open out prior range,131,47.0,0.17
+orb_filters,ORB60 or_eod | ATR high,156,-120.1,-0.39
+orb_filters,ORB60 or_eod | ATR low,165,134.6,0.66
+orb_regime_grid,outVA N10 11:00 or_eod fadeFalse,233,454.9,1.57
+orb_regime_grid,outVA N10 11:00 r_k1.0 fadeFalse,233,175.2,1.22
+orb_regime_grid,outVA N10 11:00 r_k1.5 fadeFalse,233,151.0,0.91
+orb_regime_grid,outVA N10 11:00 r_k2.0 fadeFalse,233,212.6,1.14
+orb_regime_grid,outVA N10 11:00 r_k3.0 fadeFalse,233,188.9,0.94
+orb_regime_grid,outVA N10 12:00 or_eod fadeFalse,233,454.9,1.57
+orb_regime_grid,outVA N10 12:00 r_k1.0 fadeFalse,233,175.2,1.22
+orb_regime_grid,outVA N10 12:00 r_k1.5 fadeFalse,233,151.0,0.91
+orb_regime_grid,outVA N10 12:00 r_k2.0 fadeFalse,233,212.6,1.14
+orb_regime_grid,outVA N10 12:00 r_k3.0 fadeFalse,233,188.9,0.94
+orb_regime_grid,outVA N10 13:00 or_eod fadeFalse,233,454.9,1.57
+orb_regime_grid,outVA N10 13:00 r_k1.0 fadeFalse,233,175.2,1.22
+orb_regime_grid,outVA N10 13:00 r_k1.5 fadeFalse,233,151.0,0.91
+orb_regime_grid,outVA N10 13:00 r_k2.0 fadeFalse,233,212.6,1.14
+orb_regime_grid,outVA N10 13:00 r_k3.0 fadeFalse,233,188.9,0.94
+orb_regime_grid,outVA N15 11:00 or_eod fadeFalse,229,543.7,1.86
+orb_regime_grid,outVA N15 11:00 r_k1.0 fadeFalse,229,283.3,1.78
+orb_regime_grid,outVA N15 11:00 r_k1.5 fadeFalse,229,364.2,1.91
+orb_regime_grid,outVA N15 11:00 r_k2.0 fadeFalse,229,473.7,2.18
+orb_regime_grid,outVA N15 11:00 r_k3.0 fadeFalse,229,518.4,2.02
+orb_regime_grid,outVA N15 12:00 or_eod fadeFalse,231,553.4,1.91
+orb_regime_grid,outVA N15 12:00 r_k1.0 fadeFalse,231,293.7,1.86
+orb_regime_grid,outVA N15 12:00 r_k1.5 fadeFalse,231,375.4,1.99
+orb_regime_grid,outVA N15 12:00 r_k2.0 fadeFalse,231,483.9,2.24
+orb_regime_grid,outVA N15 12:00 r_k3.0 fadeFalse,231,528.3,2.08
+orb_regime_grid,outVA N15 13:00 or_eod fadeFalse,231,553.4,1.91
+orb_regime_grid,outVA N15 13:00 r_k1.0 fadeFalse,231,293.7,1.86
+orb_regime_grid,outVA N15 13:00 r_k1.5 fadeFalse,231,375.4,1.99
+orb_regime_grid,outVA N15 13:00 r_k2.0 fadeFalse,231,483.9,2.24
+orb_regime_grid,outVA N15 13:00 r_k3.0 fadeFalse,231,528.3,2.08
+orb_regime_grid,outVA N20 11:00 or_eod fadeFalse,224,626.8,2.11
+orb_regime_grid,outVA N20 11:00 r_k1.0 fadeFalse,224,304.3,1.86
+orb_regime_grid,outVA N20 11:00 r_k1.5 fadeFalse,224,512.4,2.58
+orb_regime_grid,outVA N20 11:00 r_k2.0 fadeFalse,224,492.9,2.23
+orb_regime_grid,outVA N20 11:00 r_k3.0 fadeFalse,224,569.0,2.18
+orb_regime_grid,outVA N20 12:00 or_eod fadeFalse,229,641.0,2.2
+orb_regime_grid,outVA N20 12:00 r_k1.0 fadeFalse,229,322.8,1.99
+orb_regime_grid,outVA N20 12:00 r_k1.5 fadeFalse,229,535.6,2.71
+orb_regime_grid,outVA N20 12:00 r_k2.0 fadeFalse,229,510.2,2.33
+orb_regime_grid,outVA N20 12:00 r_k3.0 fadeFalse,229,584.7,2.28
+orb_regime_grid,outVA N20 13:00 or_eod fadeFalse,229,641.0,2.2
+orb_regime_grid,outVA N20 13:00 r_k1.0 fadeFalse,229,322.8,1.99
+orb_regime_grid,outVA N20 13:00 r_k1.5 fadeFalse,229,535.6,2.71
+orb_regime_grid,outVA N20 13:00 r_k2.0 fadeFalse,229,510.2,2.33
+orb_regime_grid,outVA N20 13:00 r_k3.0 fadeFalse,229,584.7,2.28
+orb_regime_grid,outVA N30 11:00 or_eod fadeFalse,214,665.4,2.18
+orb_regime_grid,outVA N30 11:00 r_k1.0 fadeFalse,214,492.8,2.54
+orb_regime_grid,outVA N30 11:00 r_k1.5 fadeFalse,214,495.4,2.11
+orb_regime_grid,outVA N30 11:00 r_k2.0 fadeFalse,214,461.4,2.04
+orb_regime_grid,outVA N30 11:00 r_k3.0 fadeFalse,214,486.3,1.95
+orb_regime_grid,outVA N30 12:00 or_eod fadeFalse,226,656.6,2.24
+orb_regime_grid,outVA N30 12:00 r_k1.0 fadeFalse,226,483.2,2.57
+orb_regime_grid,outVA N30 12:00 r_k1.5 fadeFalse,226,491.8,2.17
+orb_regime_grid,outVA N30 12:00 r_k2.0 fadeFalse,226,453.3,2.08
+orb_regime_grid,outVA N30 12:00 r_k3.0 fadeFalse,226,476.8,1.99
+orb_regime_grid,outVA N30 13:00 or_eod fadeFalse,226,656.6,2.24
+orb_regime_grid,outVA N30 13:00 r_k1.0 fadeFalse,226,483.2,2.57
+orb_regime_grid,outVA N30 13:00 r_k1.5 fadeFalse,226,491.8,2.17
+orb_regime_grid,outVA N30 13:00 r_k2.0 fadeFalse,226,453.3,2.08
+orb_regime_grid,outVA N30 13:00 r_k3.0 fadeFalse,226,476.8,1.99
+orb_regime_grid,outVA N45 11:00 or_eod fadeFalse,170,285.1,0.99
+orb_regime_grid,outVA N45 11:00 r_k1.0 fadeFalse,170,151.5,0.63
+orb_regime_grid,outVA N45 11:00 r_k1.5 fadeFalse,170,217.0,0.82
+orb_regime_grid,outVA N45 11:00 r_k2.0 fadeFalse,170,167.4,0.62
+orb_regime_grid,outVA N45 11:00 r_k3.0 fadeFalse,170,164.3,0.61
+orb_regime_grid,outVA N45 12:00 or_eod fadeFalse,205,170.2,0.68
+orb_regime_grid,outVA N45 12:00 r_k1.0 fadeFalse,205,61.8,0.29
+orb_regime_grid,outVA N45 12:00 r_k1.5 fadeFalse,205,112.0,0.48
+orb_regime_grid,outVA N45 12:00 r_k2.0 fadeFalse,205,62.8,0.27
+orb_regime_grid,outVA N45 12:00 r_k3.0 fadeFalse,205,60.2,0.25
+orb_regime_grid,outVA N45 13:00 or_eod fadeFalse,212,131.1,0.54
+orb_regime_grid,outVA N45 13:00 r_k1.0 fadeFalse,212,26.7,0.13
+orb_regime_grid,outVA N45 13:00 r_k1.5 fadeFalse,212,75.3,0.33
+orb_regime_grid,outVA N45 13:00 r_k2.0 fadeFalse,212,27.7,0.12
+orb_regime_grid,outVA N45 13:00 r_k3.0 fadeFalse,212,25.3,0.11
+orb_regime_grid,outPR N10 11:00 or_eod fadeFalse,150,322.2,1.14
+orb_regime_grid,outPR N10 11:00 r_k1.0 fadeFalse,150,271.7,1.47
+orb_regime_grid,outPR N10 11:00 r_k1.5 fadeFalse,150,262.2,1.23
+orb_regime_grid,outPR N10 11:00 r_k2.0 fadeFalse,150,400.9,1.62
+orb_regime_grid,outPR N10 11:00 r_k3.0 fadeFalse,150,338.9,1.28
+orb_regime_grid,outPR N10 12:00 or_eod fadeFalse,150,322.2,1.14
+orb_regime_grid,outPR N10 12:00 r_k1.0 fadeFalse,150,271.7,1.47
+orb_regime_grid,outPR N10 12:00 r_k1.5 fadeFalse,150,262.2,1.23
+orb_regime_grid,outPR N10 12:00 r_k2.0 fadeFalse,150,400.9,1.62
+orb_regime_grid,outPR N10 12:00 r_k3.0 fadeFalse,150,338.9,1.28
+orb_regime_grid,outPR N10 13:00 or_eod fadeFalse,150,322.2,1.14
+orb_regime_grid,outPR N10 13:00 r_k1.0 fadeFalse,150,271.7,1.47
+orb_regime_grid,outPR N10 13:00 r_k1.5 fadeFalse,150,262.2,1.23
+orb_regime_grid,outPR N10 13:00 r_k2.0 fadeFalse,150,400.9,1.62
+orb_regime_grid,outPR N10 13:00 r_k3.0 fadeFalse,150,338.9,1.28
+orb_regime_grid,outPR N15 11:00 or_eod fadeFalse,146,459.5,1.54
+orb_regime_grid,outPR N15 11:00 r_k1.0 fadeFalse,146,332.9,1.65
+orb_regime_grid,outPR N15 11:00 r_k1.5 fadeFalse,146,393.0,1.65
+orb_regime_grid,outPR N15 11:00 r_k2.0 fadeFalse,146,525.2,1.93
+orb_regime_grid,outPR N15 11:00 r_k3.0 fadeFalse,146,564.5,1.78
+orb_regime_grid,outPR N15 12:00 or_eod fadeFalse,148,475.6,1.61
+orb_regime_grid,outPR N15 12:00 r_k1.0 fadeFalse,148,348.4,1.75
+orb_regime_grid,outPR N15 12:00 r_k1.5 fadeFalse,148,410.1,1.74
+orb_regime_grid,outPR N15 12:00 r_k2.0 fadeFalse,148,540.5,2.0
+orb_regime_grid,outPR N15 12:00 r_k3.0 fadeFalse,148,579.2,1.85
+orb_regime_grid,outPR N15 13:00 or_eod fadeFalse,148,475.6,1.61
+orb_regime_grid,outPR N15 13:00 r_k1.0 fadeFalse,148,348.4,1.75
+orb_regime_grid,outPR N15 13:00 r_k1.5 fadeFalse,148,410.1,1.74
+orb_regime_grid,outPR N15 13:00 r_k2.0 fadeFalse,148,540.5,2.0
+orb_regime_grid,outPR N15 13:00 r_k3.0 fadeFalse,148,579.2,1.85
+orb_regime_grid,outPR N20 11:00 or_eod fadeFalse,144,515.2,1.72
+orb_regime_grid,outPR N20 11:00 r_k1.0 fadeFalse,144,312.6,1.55
+orb_regime_grid,outPR N20 11:00 r_k1.5 fadeFalse,144,537.4,2.18
+orb_regime_grid,outPR N20 11:00 r_k2.0 fadeFalse,144,505.0,1.85
+orb_regime_grid,outPR N20 11:00 r_k3.0 fadeFalse,144,579.0,1.83
+orb_regime_grid,outPR N20 12:00 or_eod fadeFalse,147,559.6,1.88
+orb_regime_grid,outPR N20 12:00 r_k1.0 fadeFalse,147,352.9,1.75
+orb_regime_grid,outPR N20 12:00 r_k1.5 fadeFalse,147,581.3,2.36
+orb_regime_grid,outPR N20 12:00 r_k2.0 fadeFalse,147,549.6,2.03
+orb_regime_grid,outPR N20 12:00 r_k3.0 fadeFalse,147,622.0,1.99
+orb_regime_grid,outPR N20 13:00 or_eod fadeFalse,147,559.6,1.88
+orb_regime_grid,outPR N20 13:00 r_k1.0 fadeFalse,147,352.9,1.75
+orb_regime_grid,outPR N20 13:00 r_k1.5 fadeFalse,147,581.3,2.36
+orb_regime_grid,outPR N20 13:00 r_k2.0 fadeFalse,147,549.6,2.03
+orb_regime_grid,outPR N20 13:00 r_k3.0 fadeFalse,147,622.0,1.99
+orb_regime_grid,outPR N30 11:00 or_eod fadeFalse,138,567.0,1.93
+orb_regime_grid,outPR N30 11:00 r_k1.0 fadeFalse,138,629.0,2.56
+orb_regime_grid,outPR N30 11:00 r_k1.5 fadeFalse,138,659.7,2.17
+orb_regime_grid,outPR N30 11:00 r_k2.0 fadeFalse,138,524.6,1.96
+orb_regime_grid,outPR N30 11:00 r_k3.0 fadeFalse,138,525.9,1.88
+orb_regime_grid,outPR N30 12:00 or_eod fadeFalse,145,575.7,2.01
+orb_regime_grid,outPR N30 12:00 r_k1.0 fadeFalse,145,615.2,2.56
+orb_regime_grid,outPR N30 12:00 r_k1.5 fadeFalse,145,647.8,2.2
+orb_regime_grid,outPR N30 12:00 r_k2.0 fadeFalse,145,519.2,1.98
+orb_regime_grid,outPR N30 12:00 r_k3.0 fadeFalse,145,520.4,1.91
+orb_regime_grid,outPR N30 13:00 or_eod fadeFalse,145,575.7,2.01
+orb_regime_grid,outPR N30 13:00 r_k1.0 fadeFalse,145,615.2,2.56
+orb_regime_grid,outPR N30 13:00 r_k1.5 fadeFalse,145,647.8,2.2
+orb_regime_grid,outPR N30 13:00 r_k2.0 fadeFalse,145,519.2,1.98
+orb_regime_grid,outPR N30 13:00 r_k3.0 fadeFalse,145,520.4,1.91
+orb_regime_grid,outPR N45 11:00 or_eod fadeFalse,114,152.4,0.43
+orb_regime_grid,outPR N45 11:00 r_k1.0 fadeFalse,114,75.0,0.24
+orb_regime_grid,outPR N45 11:00 r_k1.5 fadeFalse,114,127.8,0.38
+orb_regime_grid,outPR N45 11:00 r_k2.0 fadeFalse,114,121.0,0.35
+orb_regime_grid,outPR N45 11:00 r_k3.0 fadeFalse,114,86.0,0.26
+orb_regime_grid,outPR N45 12:00 or_eod fadeFalse,134,94.3,0.3
+orb_regime_grid,outPR N45 12:00 r_k1.0 fadeFalse,134,7.4,0.03
+orb_regime_grid,outPR N45 12:00 r_k1.5 fadeFalse,134,56.8,0.19
+orb_regime_grid,outPR N45 12:00 r_k2.0 fadeFalse,134,51.0,0.17
+orb_regime_grid,outPR N45 12:00 r_k3.0 fadeFalse,134,21.3,0.07
+orb_regime_grid,outPR N45 13:00 or_eod fadeFalse,137,84.1,0.28
+orb_regime_grid,outPR N45 13:00 r_k1.0 fadeFalse,137,-0.8,-0.0
+orb_regime_grid,outPR N45 13:00 r_k1.5 fadeFalse,137,47.4,0.16
+orb_regime_grid,outPR N45 13:00 r_k2.0 fadeFalse,137,41.7,0.14
+orb_regime_grid,outPR N45 13:00 r_k3.0 fadeFalse,137,12.7,0.04
+orb_regime_grid,inVA N10 11:00 or_eod fadeFalse,133,-244.1,-0.89
+orb_regime_grid,inVA N10 11:00 target_other fadeTrue,111,15.9,0.13
+orb_regime_grid,inVA N10 11:00 r_k1.0 fadeFalse,133,-175.9,-1.04
+orb_regime_grid,inVA N10 11:00 r_k1.0 fadeTrue,111,12.7,0.12
+orb_regime_grid,inVA N10 11:00 r_k1.5 fadeFalse,133,-200.7,-1.04
+orb_regime_grid,inVA N10 11:00 r_k1.5 fadeTrue,111,-26.3,-0.2
+orb_regime_grid,inVA N10 11:00 r_k2.0 fadeFalse,133,-283.5,-1.35
+orb_regime_grid,inVA N10 11:00 r_k2.0 fadeTrue,111,29.2,0.18
+orb_regime_grid,inVA N10 11:00 r_k3.0 fadeFalse,133,-118.1,-0.48
+orb_regime_grid,inVA N10 11:00 r_k3.0 fadeTrue,111,97.2,0.49
+orb_regime_grid,inVA N10 12:00 or_eod fadeFalse,133,-244.1,-0.89
+orb_regime_grid,inVA N10 12:00 target_other fadeTrue,114,40.8,0.33
+orb_regime_grid,inVA N10 12:00 r_k1.0 fadeFalse,133,-175.9,-1.04
+orb_regime_grid,inVA N10 12:00 r_k1.0 fadeTrue,114,58.2,0.52
+orb_regime_grid,inVA N10 12:00 r_k1.5 fadeFalse,133,-200.7,-1.04
+orb_regime_grid,inVA N10 12:00 r_k1.5 fadeTrue,114,14.3,0.11
+orb_regime_grid,inVA N10 12:00 r_k2.0 fadeFalse,133,-283.5,-1.35
+orb_regime_grid,inVA N10 12:00 r_k2.0 fadeTrue,114,62.5,0.4
+orb_regime_grid,inVA N10 12:00 r_k3.0 fadeFalse,133,-118.1,-0.48
+orb_regime_grid,inVA N10 12:00 r_k3.0 fadeTrue,114,128.7,0.66
+orb_regime_grid,inVA N10 13:00 or_eod fadeFalse,134,-236.7,-0.87
+orb_regime_grid,inVA N10 13:00 target_other fadeTrue,116,79.8,0.64
+orb_regime_grid,inVA N10 13:00 r_k1.0 fadeFalse,134,-169.0,-1.01
+orb_regime_grid,inVA N10 13:00 r_k1.0 fadeTrue,116,42.6,0.37
+orb_regime_grid,inVA N10 13:00 r_k1.5 fadeFalse,134,-193.6,-1.01
+orb_regime_grid,inVA N10 13:00 r_k1.5 fadeTrue,116,5.5,0.04
+orb_regime_grid,inVA N10 13:00 r_k2.0 fadeFalse,134,-275.8,-1.33
+orb_regime_grid,inVA N10 13:00 r_k2.0 fadeTrue,116,59.0,0.37
+orb_regime_grid,inVA N10 13:00 r_k3.0 fadeFalse,134,-111.7,-0.46
+orb_regime_grid,inVA N10 13:00 r_k3.0 fadeTrue,116,122.5,0.62
+orb_regime_grid,inVA N15 11:00 or_eod fadeFalse,133,-272.2,-1.01
+orb_regime_grid,inVA N15 11:00 target_other fadeTrue,107,-8.7,-0.07
+orb_regime_grid,inVA N15 11:00 r_k1.0 fadeFalse,133,-154.9,-0.79
+orb_regime_grid,inVA N15 11:00 r_k1.0 fadeTrue,107,-124.3,-1.26
+orb_regime_grid,inVA N15 11:00 r_k1.5 fadeFalse,133,-202.9,-0.91
+orb_regime_grid,inVA N15 11:00 r_k1.5 fadeTrue,107,-98.5,-0.86
+orb_regime_grid,inVA N15 11:00 r_k2.0 fadeFalse,133,-224.4,-0.94
+orb_regime_grid,inVA N15 11:00 r_k2.0 fadeTrue,107,-42.5,-0.32
+orb_regime_grid,inVA N15 11:00 r_k3.0 fadeFalse,133,-148.4,-0.53
+orb_regime_grid,inVA N15 11:00 r_k3.0 fadeTrue,107,20.8,0.12
+orb_regime_grid,inVA N15 12:00 or_eod fadeFalse,133,-272.2,-1.01
+orb_regime_grid,inVA N15 12:00 target_other fadeTrue,112,42.8,0.33
+orb_regime_grid,inVA N15 12:00 r_k1.0 fadeFalse,133,-154.9,-0.79
+orb_regime_grid,inVA N15 12:00 r_k1.0 fadeTrue,112,-63.8,-0.59
+orb_regime_grid,inVA N15 12:00 r_k1.5 fadeFalse,133,-202.9,-0.91
+orb_regime_grid,inVA N15 12:00 r_k1.5 fadeTrue,112,-47.6,-0.4
+orb_regime_grid,inVA N15 12:00 r_k2.0 fadeFalse,133,-224.4,-0.94
+orb_regime_grid,inVA N15 12:00 r_k2.0 fadeTrue,112,-0.0,-0.0
+orb_regime_grid,inVA N15 12:00 r_k3.0 fadeFalse,133,-148.4,-0.53
+orb_regime_grid,inVA N15 12:00 r_k3.0 fadeTrue,112,60.5,0.36
+orb_regime_grid,inVA N15 13:00 or_eod fadeFalse,134,-264.6,-0.98
+orb_regime_grid,inVA N15 13:00 target_other fadeTrue,114,83.1,0.62
+orb_regime_grid,inVA N15 13:00 r_k1.0 fadeFalse,134,-148.1,-0.76
+orb_regime_grid,inVA N15 13:00 r_k1.0 fadeTrue,114,-76.8,-0.69
+orb_regime_grid,inVA N15 13:00 r_k1.5 fadeFalse,134,-195.8,-0.88
+orb_regime_grid,inVA N15 13:00 r_k1.5 fadeTrue,114,-54.7,-0.44
+orb_regime_grid,inVA N15 13:00 r_k2.0 fadeFalse,134,-217.1,-0.92
+orb_regime_grid,inVA N15 13:00 r_k2.0 fadeTrue,114,-1.8,-0.01
+orb_regime_grid,inVA N15 13:00 r_k3.0 fadeFalse,134,-141.7,-0.51
+orb_regime_grid,inVA N15 13:00 r_k3.0 fadeTrue,114,56.0,0.33
+orb_regime_grid,inVA N20 11:00 or_eod fadeFalse,128,-266.5,-0.94
+orb_regime_grid,inVA N20 11:00 target_other fadeTrue,102,106.3,0.71
+orb_regime_grid,inVA N20 11:00 r_k1.0 fadeFalse,128,-126.4,-0.58
+orb_regime_grid,inVA N20 11:00 r_k1.0 fadeTrue,102,50.8,0.5
+orb_regime_grid,inVA N20 11:00 r_k1.5 fadeFalse,128,-179.2,-0.73
+orb_regime_grid,inVA N20 11:00 r_k1.5 fadeTrue,102,55.6,0.44
+orb_regime_grid,inVA N20 11:00 r_k2.0 fadeFalse,128,-230.0,-0.87
+orb_regime_grid,inVA N20 11:00 r_k2.0 fadeTrue,102,85.4,0.61
+orb_regime_grid,inVA N20 11:00 r_k3.0 fadeFalse,128,-146.0,-0.49
+orb_regime_grid,inVA N20 11:00 r_k3.0 fadeTrue,102,127.2,0.72
+orb_regime_grid,inVA N20 12:00 or_eod fadeFalse,131,-302.2,-1.08
+orb_regime_grid,inVA N20 12:00 target_other fadeTrue,110,99.0,0.68
+orb_regime_grid,inVA N20 12:00 r_k1.0 fadeFalse,131,-163.0,-0.76
+orb_regime_grid,inVA N20 12:00 r_k1.0 fadeTrue,110,55.7,0.54
+orb_regime_grid,inVA N20 12:00 r_k1.5 fadeFalse,131,-214.7,-0.89
+orb_regime_grid,inVA N20 12:00 r_k1.5 fadeTrue,110,37.3,0.3
+orb_regime_grid,inVA N20 12:00 r_k2.0 fadeFalse,131,-264.3,-1.02
+orb_regime_grid,inVA N20 12:00 r_k2.0 fadeTrue,110,60.0,0.44
+orb_regime_grid,inVA N20 12:00 r_k3.0 fadeFalse,131,-182.2,-0.63
+orb_regime_grid,inVA N20 12:00 r_k3.0 fadeTrue,110,100.9,0.6
+orb_regime_grid,inVA N20 13:00 or_eod fadeFalse,134,-307.3,-1.12
+orb_regime_grid,inVA N20 13:00 target_other fadeTrue,114,144.3,0.99
+orb_regime_grid,inVA N20 13:00 r_k1.0 fadeFalse,134,-188.1,-0.88
+orb_regime_grid,inVA N20 13:00 r_k1.0 fadeTrue,114,90.6,0.87
+orb_regime_grid,inVA N20 13:00 r_k1.5 fadeFalse,134,-238.7,-1.01
+orb_regime_grid,inVA N20 13:00 r_k1.5 fadeTrue,114,74.3,0.6
+orb_regime_grid,inVA N20 13:00 r_k2.0 fadeFalse,134,-287.1,-1.12
+orb_regime_grid,inVA N20 13:00 r_k2.0 fadeTrue,114,104.6,0.77
+orb_regime_grid,inVA N20 13:00 r_k3.0 fadeFalse,134,-206.9,-0.73
+orb_regime_grid,inVA N20 13:00 r_k3.0 fadeTrue,114,147.2,0.89
+orb_regime_grid,inVA N30 11:00 or_eod fadeFalse,122,-386.7,-1.32
+orb_regime_grid,inVA N30 11:00 target_other fadeTrue,104,11.4,0.07
+orb_regime_grid,inVA N30 11:00 r_k1.0 fadeFalse,122,-222.2,-0.89
+orb_regime_grid,inVA N30 11:00 r_k1.0 fadeTrue,104,-6.1,-0.06
+orb_regime_grid,inVA N30 11:00 r_k1.5 fadeFalse,122,-217.7,-0.79
+orb_regime_grid,inVA N30 11:00 r_k1.5 fadeTrue,104,-39.1,-0.3
+orb_regime_grid,inVA N30 11:00 r_k2.0 fadeFalse,122,-241.6,-0.84
+orb_regime_grid,inVA N30 11:00 r_k2.0 fadeTrue,104,-7.5,-0.05
+orb_regime_grid,inVA N30 11:00 r_k3.0 fadeFalse,122,-206.4,-0.65
+orb_regime_grid,inVA N30 11:00 r_k3.0 fadeTrue,104,-4.5,-0.03
+orb_regime_grid,inVA N30 12:00 or_eod fadeFalse,130,-434.5,-1.57
+orb_regime_grid,inVA N30 12:00 target_other fadeTrue,115,49.5,0.33
+orb_regime_grid,inVA N30 12:00 r_k1.0 fadeFalse,130,-262.6,-1.11
+orb_regime_grid,inVA N30 12:00 r_k1.0 fadeTrue,115,32.7,0.32
+orb_regime_grid,inVA N30 12:00 r_k1.5 fadeFalse,130,-253.0,-0.97
+orb_regime_grid,inVA N30 12:00 r_k1.5 fadeTrue,115,8.6,0.07
+orb_regime_grid,inVA N30 12:00 r_k2.0 fadeFalse,130,-292.2,-1.07
+orb_regime_grid,inVA N30 12:00 r_k2.0 fadeTrue,115,0.7,0.01
+orb_regime_grid,inVA N30 12:00 r_k3.0 fadeFalse,130,-259.2,-0.87
+orb_regime_grid,inVA N30 12:00 r_k3.0 fadeTrue,115,-6.4,-0.04
+orb_regime_grid,inVA N30 13:00 or_eod fadeFalse,133,-436.5,-1.61
+orb_regime_grid,inVA N30 13:00 target_other fadeTrue,122,93.5,0.63
+orb_regime_grid,inVA N30 13:00 r_k1.0 fadeFalse,133,-268.3,-1.16
+orb_regime_grid,inVA N30 13:00 r_k1.0 fadeTrue,122,66.1,0.64
+orb_regime_grid,inVA N30 13:00 r_k1.5 fadeFalse,133,-259.0,-1.01
+orb_regime_grid,inVA N30 13:00 r_k1.5 fadeTrue,122,44.8,0.36
+orb_regime_grid,inVA N30 13:00 r_k2.0 fadeFalse,133,-297.3,-1.11
+orb_regime_grid,inVA N30 13:00 r_k2.0 fadeTrue,122,45.4,0.33
+orb_regime_grid,inVA N30 13:00 r_k3.0 fadeFalse,133,-265.0,-0.9
+orb_regime_grid,inVA N30 13:00 r_k3.0 fadeTrue,122,41.5,0.27
+orb_regime_grid,inVA N45 11:00 or_eod fadeFalse,89,-475.1,-1.39
+orb_regime_grid,inVA N45 11:00 target_other fadeTrue,67,-34.0,-0.18
+orb_regime_grid,inVA N45 11:00 r_k1.0 fadeFalse,89,-280.5,-0.92
+orb_regime_grid,inVA N45 11:00 r_k1.0 fadeTrue,67,-127.6,-1.18
+orb_regime_grid,inVA N45 11:00 r_k1.5 fadeFalse,89,-339.8,-1.06
+orb_regime_grid,inVA N45 11:00 r_k1.5 fadeTrue,67,-86.7,-0.7
+orb_regime_grid,inVA N45 11:00 r_k2.0 fadeFalse,89,-413.3,-1.27
+orb_regime_grid,inVA N45 11:00 r_k2.0 fadeTrue,67,-228.5,-1.87
+orb_regime_grid,inVA N45 11:00 r_k3.0 fadeFalse,89,-381.9,-1.12
+orb_regime_grid,inVA N45 11:00 r_k3.0 fadeTrue,67,-182.2,-1.29
+orb_regime_grid,inVA N45 12:00 or_eod fadeFalse,114,-475.8,-1.7
+orb_regime_grid,inVA N45 12:00 target_other fadeTrue,100,16.6,0.11
+orb_regime_grid,inVA N45 12:00 r_k1.0 fadeFalse,114,-259.0,-0.99
+orb_regime_grid,inVA N45 12:00 r_k1.0 fadeTrue,100,-19.7,-0.2
+orb_regime_grid,inVA N45 12:00 r_k1.5 fadeFalse,114,-262.1,-0.92
+orb_regime_grid,inVA N45 12:00 r_k1.5 fadeTrue,100,-34.4,-0.33
+orb_regime_grid,inVA N45 12:00 r_k2.0 fadeFalse,114,-303.4,-1.01
+orb_regime_grid,inVA N45 12:00 r_k2.0 fadeTrue,100,-108.1,-1.0
+orb_regime_grid,inVA N45 12:00 r_k3.0 fadeFalse,114,-393.5,-1.41
+orb_regime_grid,inVA N45 12:00 r_k3.0 fadeTrue,100,-56.7,-0.46
+orb_regime_grid,inVA N45 13:00 or_eod fadeFalse,123,-434.9,-1.65
+orb_regime_grid,inVA N45 13:00 target_other fadeTrue,108,41.8,0.29
+orb_regime_grid,inVA N45 13:00 r_k1.0 fadeFalse,123,-233.8,-0.95
+orb_regime_grid,inVA N45 13:00 r_k1.0 fadeTrue,108,8.6,0.09
+orb_regime_grid,inVA N45 13:00 r_k1.5 fadeFalse,123,-236.7,-0.89
+orb_regime_grid,inVA N45 13:00 r_k1.5 fadeTrue,108,-1.3,-0.01
+orb_regime_grid,inVA N45 13:00 r_k2.0 fadeFalse,123,-275.0,-0.97
+orb_regime_grid,inVA N45 13:00 r_k2.0 fadeTrue,108,-76.1,-0.7
+orb_regime_grid,inVA N45 13:00 r_k3.0 fadeFalse,123,-358.5,-1.36
+orb_regime_grid,inVA N45 13:00 r_k3.0 fadeTrue,108,-25.3,-0.21
+noise+trendPM,noise m0.75 exinTrue first10:00,243,79.0,0.58
+noise+trendPM,noise m0.75 exinTrue first11:00,205,83.0,0.55
+noise+trendPM,noise m0.75 exinFalse first10:00,243,49.0,0.35
+noise+trendPM,noise m0.75 exinFalse first11:00,205,63.2,0.42
+noise+trendPM,noise m1.0 exinTrue first10:00,197,147.5,0.94
+noise+trendPM,noise m1.0 exinTrue first11:00,171,21.7,0.14
+noise+trendPM,noise m1.0 exinFalse first10:00,197,118.9,0.74
+noise+trendPM,noise m1.0 exinFalse first11:00,171,-1.4,-0.01
+noise+trendPM,noise m1.5 exinTrue first10:00,130,117.8,0.73
+noise+trendPM,noise m1.5 exinTrue first11:00,112,298.9,1.18
+noise+trendPM,noise m1.5 exinFalse first10:00,130,39.6,0.24
+noise+trendPM,noise m1.5 exinFalse first11:00,112,253.7,0.99
+noise+trendPM,trendPM 11:00 thr0.3 st0.2,169,-58.0,-0.36
+noise+trendPM,trendPM 11:00 thr0.3 st0.4,169,-28.7,-0.13
+noise+trendPM,trendPM 11:00 thr0.5 st0.2,97,-100.3,-0.47
+noise+trendPM,trendPM 11:00 thr0.5 st0.4,97,17.4,0.06
+noise+trendPM,trendPM 11:00 thr0.8 st0.2,30,-308.6,-0.93
+noise+trendPM,trendPM 11:00 thr0.8 st0.4,30,-371.0,-0.77
+noise+trendPM,trendPM 12:00 thr0.3 st0.2,184,-154.3,-1.05
+noise+trendPM,trendPM 12:00 thr0.3 st0.4,184,-162.4,-0.86
+noise+trendPM,trendPM 12:00 thr0.5 st0.2,104,-205.7,-1.13
+noise+trendPM,trendPM 12:00 thr0.5 st0.4,104,7.1,0.03
+noise+trendPM,trendPM 12:00 thr0.8 st0.2,44,-465.5,-1.74
+noise+trendPM,trendPM 12:00 thr0.8 st0.4,44,-204.7,-0.59
+noise+trendPM,trendPM 13:00 thr0.3 st0.2,202,83.8,0.34
+noise+trendPM,trendPM 13:00 thr0.3 st0.4,202,168.4,0.62
+noise+trendPM,trendPM 13:00 thr0.5 st0.2,129,175.3,0.48
+noise+trendPM,trendPM 13:00 thr0.5 st0.4,129,259.9,0.65
+noise+trendPM,trendPM 13:00 thr0.8 st0.2,60,-2.3,-0.01
+noise+trendPM,trendPM 13:00 thr0.8 st0.4,60,236.7,0.61
+noise+trendPM,trendPM 14:00 thr0.3 st0.2,214,-105.3,-0.8
+noise+trendPM,trendPM 14:00 thr0.3 st0.4,214,21.0,0.14
+noise+trendPM,trendPM 14:00 thr0.5 st0.2,131,-182.7,-1.04
+noise+trendPM,trendPM 14:00 thr0.5 st0.4,131,-26.9,-0.13
+noise+trendPM,trendPM 14:00 thr0.8 st0.2,64,-79.4,-0.28
+noise+trendPM,trendPM 14:00 thr0.8 st0.4,64,117.3,0.33
+pd_on_levels,pd go st0.15 exit12:29,138,-70.2,-0.45
+pd_on_levels,pd go st0.15 exit15:59,143,-44.5,-0.26
+pd_on_levels,pd go st0.3 exit12:29,138,-109.9,-0.54
+pd_on_levels,pd go st0.3 exit15:59,143,-23.4,-0.1
+pd_on_levels,pd fade st0.15 exit12:29,115,-227.4,-1.65
+pd_on_levels,pd fade st0.15 exit15:59,122,-315.9,-2.02
+pd_on_levels,pd fade st0.3 exit12:29,115,-85.5,-0.46
+pd_on_levels,pd fade st0.3 exit15:59,122,-256.5,-0.97
+pd_on_levels,on go st0.15 exit12:29,309,50.3,0.42
+pd_on_levels,on go st0.15 exit15:59,314,31.0,0.23
+pd_on_levels,on go st0.3 exit12:29,309,63.3,0.41
+pd_on_levels,on go st0.3 exit15:59,314,-37.4,-0.22
+pd_on_levels,on fade st0.15 exit12:29,257,27.7,0.23
+pd_on_levels,on fade st0.15 exit15:59,262,-99.5,-0.72
+pd_on_levels,on fade st0.3 exit12:29,257,50.2,0.33
+pd_on_levels,on fade st0.3 exit15:59,262,-72.0,-0.38
+oov_robust,C1 base,231,553.4,1.91
+oov_robust,C1 N=10,233,454.9,1.57
+oov_robust,C1 N=20,229,641.0,2.2
+oov_robust,C1 cutoff=11:00,229,543.7,1.86
+oov_robust,C1 cutoff=13:00,231,553.4,1.91
+oov_robust,C1 stop_mult=0.75,231,279.2,1.32
+oov_robust,C1 stop_mult=1.25,231,476.4,1.61
+oov_robust,C1 k=3.0,231,543.3,2.1
+oov_robust,C1 exit_time=15:00,231,488.0,1.94
+oov_robust,C1 exit_time=15:30,231,535.4,1.92
+oov_robust,C1 regime=outPR,148,475.6,1.61
+oov_robust,C1 stress late1m,231,522.9,1.81
+oov_robust,C1 stress cost+40,231,513.4,1.77
+oov_robust,C1 risk$1000,231,246.8,2.08
+oov_robust,C1 risk$1500,231,335.8,2.06
+oov_robust,C1 risk$2000,231,381.6,2.02
+oov_robust,C1 ES,221,69.6,0.54
+oov_robust,C2 base,226,513.2,2.7
+oov_robust,C2 N=20,229,315.5,1.92
+oov_robust,C2 N=45,205,99.9,0.46
+oov_robust,C2 cutoff=11:00,214,513.8,2.62
+oov_robust,C2 cutoff=13:00,226,513.2,2.7
+oov_robust,C2 stop_mult=0.75,226,371.9,2.07
+oov_robust,C2 stop_mult=1.25,226,461.8,2.35
+oov_robust,C2 k=0.75,226,414.0,2.49
+oov_robust,C2 k=1.5,226,524.8,2.29
+oov_robust,C2 exit_time=15:00,226,450.2,2.43
+oov_robust,C2 exit_time=15:30,226,491.5,2.64
+oov_robust,C2 regime=outPR,145,621.8,2.55
+oov_robust,C2 stress late1m,226,438.8,2.3
+oov_robust,C2 stress cost+40,226,473.2,2.49
+oov_robust,C2 risk$1000,224,196.1,3.27
+oov_robust,C2 risk$1500,226,292.2,3.24
+oov_robust,C2 risk$2000,226,368.9,3.22
+oov_robust,C2 ES,219,38.7,0.38

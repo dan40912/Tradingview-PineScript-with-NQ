@@ -1,0 +1,87 @@
+S1 accept n=1 side=0                                    n= 108 win= 56.5 avg= -173.3 tot=-18719.0 dd=-22118.0 r/dd=-0.85 sh=-1.02
+S1 accept n=1 side=1                                    n=  66 win= 59.1 avg=  -81.0 tot= -5348.0 dd=-11092.0 r/dd=-0.48 sh=-0.41
+S1 accept n=1 side=-1                                   n=  53 win= 54.7 avg= -190.0 tot=-10069.0 dd=-12620.0 r/dd= -0.8 sh=-0.75
+S1 accept n=2 side=0                                    n=  99 win= 52.5 avg= -265.5 tot=-26287.0 dd=-28391.0 r/dd=-0.93 sh=-1.46
+S1 accept n=2 side=1                                    n=  61 win= 49.2 avg= -288.5 tot=-17598.0 dd=-20754.0 r/dd=-0.85 sh=-1.27
+S1 accept n=2 side=-1                                   n=  45 win= 57.8 avg= -175.8 tot= -7910.0 dd=-16381.0 r/dd=-0.48 sh=-0.67
+S1 accept n=3 side=0                                    n=  92 win= 57.6 avg= -183.0 tot=-16836.0 dd=-18000.0 r/dd=-0.94 sh=-0.98
+S1 accept n=3 side=1                                    n=  56 win= 55.4 avg= -240.1 tot=-13448.0 dd=-14612.0 r/dd=-0.92 sh=-0.99
+S1 accept n=3 side=-1                                   n=  42 win= 59.5 avg=  -40.9 tot= -1716.0 dd=-11478.0 r/dd=-0.15 sh=-0.16
+S1 accept n=2 any-open-day                              n= 325 win= 60.0 avg= -218.8 tot=-71120.0 dd=-74419.0 r/dd=-0.96 sh=-2.0
+S3 composite k=2 m=1                                    n=  84 win= 70.2 avg=  141.3 tot= 11873.0 dd= -7869.0 r/dd= 1.51 sh=0.74
+S3 composite k=2 m=2                                    n=  78 win= 67.9 avg=   96.4 tot=  7521.0 dd= -7608.0 r/dd= 0.99 sh=0.5
+S3 composite k=2 m=3                                    n=  67 win= 62.7 avg=   78.0 tot=  5229.0 dd= -5601.0 r/dd= 0.93 sh=0.4
+S3 composite k=3 m=1                                    n=  79 win= 68.4 avg=  241.2 tot= 19058.0 dd= -7408.0 r/dd= 2.57 sh=1.35
+S3 composite k=3 m=2                                    n=  65 win= 72.3 avg=  334.7 tot= 21755.0 dd= -4844.0 r/dd= 4.49 sh=1.73
+S3 composite k=3 m=3                                    n=  61 win= 59.0 avg=    6.4 tot=   392.0 dd= -8582.0 r/dd= 0.05 sh=0.03
+S3 composite k=5 m=1                                    n=  58 win= 65.5 avg=  -67.3 tot= -3904.0 dd= -9206.0 r/dd=-0.42 sh=-0.26
+S3 composite k=5 m=2                                    n=  45 win= 71.1 avg=  282.8 tot= 12725.0 dd= -2948.0 r/dd= 4.32 sh=1.24
+S3 composite k=5 m=3                                    n=  44 win= 70.5 avg=  133.5 tot=  5873.0 dd= -7761.0 r/dd= 0.76 sh=0.54
+S4 naked w=1 60-200 mom=True                            n=  43 win= 58.1 avg= -419.6 tot=-18044.0 dd=-23964.0 r/dd=-0.75 sh=-1.22
+S4 naked w=1 60-200 mom=False                           n=  93 win= 62.4 avg= -282.6 tot=-26284.0 dd=-34935.0 r/dd=-0.75 sh=-1.25
+S4 naked w=1 60-400 mom=True                            n=  84 win= 54.8 avg= -588.1 tot=-49397.0 dd=-56781.0 r/dd=-0.87 sh=-2.33
+S4 naked w=1 60-400 mom=False                           n= 174 win= 58.6 avg= -441.0 tot=-76732.0 dd=-87568.0 r/dd=-0.88 sh=-2.61
+S4 naked w=1 100-600 mom=True                           n= 102 win= 59.8 avg= -388.6 tot=-39636.0 dd=-48072.0 r/dd=-0.82 sh=-1.78
+S4 naked w=1 100-600 mom=False                          n= 203 win= 62.6 avg= -288.0 tot=-58469.0 dd=-74149.0 r/dd=-0.79 sh=-1.91
+S4 naked w=5 60-200 mom=True                            n=  49 win= 63.3 avg= -112.6 tot= -5517.0 dd=-17396.0 r/dd=-0.32 sh=-0.4
+S4 naked w=5 60-200 mom=False                           n=  86 win= 64.0 avg= -131.1 tot=-11278.0 dd=-24619.0 r/dd=-0.46 sh=-0.61
+S4 naked w=5 60-400 mom=True                            n=  85 win= 62.4 avg= -198.9 tot=-16905.0 dd=-26197.0 r/dd=-0.65 sh=-0.89
+S4 naked w=5 60-400 mom=False                           n= 171 win= 59.6 avg= -338.3 tot=-57848.0 dd=-67902.0 r/dd=-0.85 sh=-2.06
+S4 naked w=5 100-600 mom=True                           n=  96 win= 65.6 avg=  -50.2 tot= -4823.0 dd=-22822.0 r/dd=-0.21 sh=-0.25
+S4 naked w=5 100-600 mom=False                          n= 198 win= 60.1 avg= -266.8 tot=-52834.0 dd=-64993.0 r/dd=-0.81 sh=-1.82
+S4 naked w=15 60-200 mom=True                           n=  47 win= 53.2 avg= -446.4 tot=-20981.0 dd=-21242.0 r/dd=-0.99 sh=-1.46
+S4 naked w=15 60-200 mom=False                          n=  80 win= 56.2 avg= -364.4 tot=-29155.0 dd=-33568.0 r/dd=-0.87 sh=-1.59
+S4 naked w=15 60-400 mom=True                           n=  86 win= 62.8 avg= -141.1 tot=-12133.0 dd=-18236.0 r/dd=-0.67 sh=-0.67
+S4 naked w=15 60-400 mom=False                          n= 172 win= 58.1 avg= -306.0 tot=-52631.0 dd=-58512.0 r/dd= -0.9 sh=-1.96
+S4 naked w=15 100-600 mom=True                          n=  94 win= 67.0 avg=   35.1 tot=  3298.0 dd=-18722.0 r/dd= 0.18 sh=0.19
+S4 naked w=15 100-600 mom=False                         n= 202 win= 61.4 avg= -176.3 tot=-35611.0 dd=-49404.0 r/dd=-0.72 sh=-1.28
+S5 vwapband anchor=18 z=1.5                             n= 311 win= 59.5 avg= -145.3 tot=-45183.0 dd=-52751.0 r/dd=-0.86 sh=-1.39
+S5 vwapband anchor=18 z=2.0                             n= 224 win= 60.7 avg=  -98.0 tot=-21962.0 dd=-36772.0 r/dd= -0.6 sh=-0.81
+S5 vwapband anchor=18 z=2.5                             n= 111 win= 66.7 avg=   97.5 tot= 10822.0 dd=-12904.0 r/dd= 0.84 sh=0.62
+S5 vwapband anchor=930 z=1.5                            n= 367 win= 59.1 avg= -216.4 tot=-79411.0 dd=-87706.0 r/dd=-0.91 sh=-2.11
+S5 vwapband anchor=930 z=2.0                            n= 341 win= 57.2 avg= -224.8 tot=-76643.0 dd=-87493.0 r/dd=-0.88 sh=-2.18
+S5 vwapband anchor=930 z=2.5                            n= 212 win= 61.8 avg=  -71.4 tot=-15146.0 dd=-36422.0 r/dd=-0.42 sh=-0.58
+S6 div w=15 thr=0.0 outVA=False follow=False            n=  70 win= 74.3 avg=  206.4 tot= 14450.0 dd=-10740.0 r/dd= 1.35 sh=1.01
+S6 div w=15 thr=0.0 outVA=False follow=True             n=  70 win= 55.7 avg= -336.1 tot=-23525.0 dd=-25502.0 r/dd=-0.92 sh=-1.36
+S6 div w=15 thr=0.0 outVA=True follow=False             n=  30 win= 70.0 avg=   10.3 tot=   310.0 dd= -5513.0 r/dd= 0.06 sh=0.03
+S6 div w=15 thr=0.0 outVA=True follow=True              n=  30 win= 56.7 avg= -355.8 tot=-10675.0 dd=-10675.0 r/dd= -1.0 sh=-0.92
+S6 div w=15 thr=0.05 outVA=False follow=False           n=  31 win= 74.2 avg=  196.4 tot=  6087.0 dd= -5896.0 r/dd= 1.03 sh=0.6
+S6 div w=15 thr=0.05 outVA=False follow=True            n=  31 win= 58.1 avg= -444.1 tot=-13768.0 dd=-15877.0 r/dd=-0.87 sh=-1.09
+S6 div w=15 thr=0.05 outVA=True follow=False            n=  14 win= 64.3 avg= -182.3 tot= -2552.0 dd= -6567.0 r/dd=-0.39 sh=-0.35
+S6 div w=15 thr=0.05 outVA=True follow=True             n=  14 win= 57.1 avg= -403.7 tot= -5652.0 dd= -7761.0 r/dd=-0.73 sh=-0.67
+S6 div w=30 thr=0.0 outVA=False follow=False            n=  84 win= 69.0 avg=  220.8 tot= 18543.0 dd= -9652.0 r/dd= 1.92 sh=1.23
+S6 div w=30 thr=0.0 outVA=False follow=True             n=  84 win= 46.4 avg= -516.3 tot=-43367.0 dd=-49483.0 r/dd=-0.88 sh=-2.3
+S6 div w=30 thr=0.0 outVA=True follow=False             n=  35 win= 60.0 avg=   36.3 tot=  1270.0 dd= -8673.0 r/dd= 0.15 sh=0.13
+S6 div w=30 thr=0.0 outVA=True follow=True              n=  35 win= 48.6 avg= -448.6 tot=-15700.0 dd=-21310.0 r/dd=-0.74 sh=-1.27
+S6 div w=30 thr=0.05 outVA=False follow=False           n=  37 win= 70.3 avg=  115.1 tot=  4259.0 dd= -9598.0 r/dd= 0.44 sh=0.38
+S6 div w=30 thr=0.05 outVA=False follow=True            n=  37 win= 45.9 avg= -545.2 tot=-20171.0 dd=-25559.0 r/dd=-0.79 sh=-1.56
+S6 div w=30 thr=0.05 outVA=True follow=False            n=  16 win= 75.0 avg=  339.5 tot=  5432.0 dd= -3446.0 r/dd= 1.58 sh=0.86
+S6 div w=30 thr=0.05 outVA=True follow=True             n=  16 win= 37.5 avg= -763.6 tot=-12218.0 dd=-14681.0 r/dd=-0.83 sh=-1.38
+S6 div w=60 thr=0.0 outVA=False follow=False            n=  69 win= 47.8 avg= -328.7 tot=-22677.0 dd=-27007.0 r/dd=-0.84 sh=-1.57
+S6 div w=60 thr=0.0 outVA=False follow=True             n=  69 win= 63.8 avg=  160.0 tot= 11043.0 dd= -7563.0 r/dd= 1.46 sh=0.9
+S6 div w=60 thr=0.0 outVA=True follow=False             n=  23 win= 47.8 avg= -470.4 tot=-10819.0 dd=-12923.0 r/dd=-0.84 sh=-1.14
+S6 div w=60 thr=0.0 outVA=True follow=True              n=  23 win= 65.2 avg=  172.0 tot=  3956.0 dd= -5896.0 r/dd= 0.67 sh=0.52
+S6 div w=60 thr=0.05 outVA=False follow=False           n=  19 win= 47.4 avg=  -27.5 tot=  -522.0 dd= -4461.0 r/dd=-0.12 sh=-0.08
+S6 div w=60 thr=0.05 outVA=False follow=True            n=  19 win= 68.4 avg=  114.9 tot=  2183.0 dd= -5325.0 r/dd= 0.41 sh=0.36
+S6 div w=60 thr=0.05 outVA=True follow=False            n=   4 win= 50.0 avg=   -0.5 tot=    -2.0 dd= -2106.0 r/dd= -0.0 sh=-0.0
+S6 div w=60 thr=0.05 outVA=True follow=True             n=   4 win= 75.0 avg=  452.0 tot=  1808.0 dd=  -818.0 r/dd= 2.21 sh=0.84
+S8 dva w=30 fade=False mode=full                        n= 190 win= 61.6 avg= -137.3 tot=-26080.0 dd=-31915.0 r/dd=-0.82 sh=-0.95
+S8 dva w=30 fade=False mode=poc                         n= 239 win= 58.6 avg= -195.3 tot=-46682.0 dd=-54912.0 r/dd=-0.85 sh=-1.55
+S8 dva w=30 fade=True mode=full                         n= 190 win= 56.3 avg= -221.3 tot=-42050.0 dd=-50003.0 r/dd=-0.84 sh=-1.6
+S8 dva w=30 fade=True mode=poc                          n= 239 win= 58.6 avg= -113.1 tot=-27032.0 dd=-38805.0 r/dd= -0.7 sh=-0.96
+S8 dva w=60 fade=False mode=full                        n= 177 win= 58.2 avg=  -70.1 tot=-12401.0 dd=-17678.0 r/dd= -0.7 sh=-0.54
+S8 dva w=60 fade=False mode=poc                         n= 247 win= 56.7 avg= -121.5 tot=-30016.0 dd=-33683.0 r/dd=-0.89 sh=-1.09
+S8 dva w=60 fade=True mode=full                         n= 177 win= 58.8 avg=  -82.4 tot=-14586.0 dd=-24163.0 r/dd= -0.6 sh=-0.66
+S8 dva w=60 fade=True mode=poc                          n= 247 win= 60.7 avg=  -46.3 tot=-11431.0 dd=-24447.0 r/dd=-0.47 sh=-0.44
+S8 dva w=90 fade=False mode=full                        n= 178 win= 62.9 avg=   82.4 tot= 14661.0 dd=-19209.0 r/dd= 0.76 sh=0.72
+S8 dva w=90 fade=False mode=poc                         n= 255 win= 60.4 avg=    3.5 tot=   885.0 dd=-25945.0 r/dd= 0.03 sh=0.04
+S8 dva w=90 fade=True mode=full                         n= 178 win= 50.6 avg= -157.4 tot=-28024.0 dd=-30478.0 r/dd=-0.92 sh=-1.4
+S8 dva w=90 fade=True mode=poc                          n= 255 win= 52.9 avg=  -94.1 tot=-24000.0 dd=-32713.0 r/dd=-0.73 sh=-1.01
+S9 poor repair th=0.2 55-150 w=1                        n=  25 win= 56.0 avg= -137.0 tot= -3425.0 dd= -7502.0 r/dd=-0.46 sh=-0.38
+S9 poor repair th=0.2 55-150 w=15                       n=  26 win= 69.2 avg=  -14.7 tot=  -383.0 dd= -7122.0 r/dd=-0.05 sh=-0.04
+S9 poor repair th=0.2 55-300 w=1                        n=  41 win= 61.0 avg=  -97.5 tot= -3998.0 dd=-10179.0 r/dd=-0.39 sh=-0.33
+S9 poor repair th=0.2 55-300 w=15                       n=  41 win= 70.7 avg=   52.2 tot=  2142.0 dd= -9460.0 r/dd= 0.23 sh=0.18
+S9 poor repair th=0.3 55-150 w=1                        n=  12 win= 50.0 avg= -528.8 tot= -6346.0 dd= -8382.0 r/dd=-0.76 sh=-0.86
+S9 poor repair th=0.3 55-150 w=15                       n=  11 win= 54.5 avg= -587.1 tot= -6458.0 dd= -9916.0 r/dd=-0.65 sh=-0.87
+S9 poor repair th=0.3 55-300 w=1                        n=  17 win= 52.9 avg= -352.1 tot= -5986.0 dd= -8022.0 r/dd=-0.75 sh=-0.74
+S9 poor repair th=0.3 55-300 w=15                       n=  17 win= 58.8 avg= -317.7 tot= -5401.0 dd= -9098.0 r/dd=-0.59 sh=-0.64
