@@ -1,0 +1,40 @@
+
+===== discovery: 374 common tradable days
+daily P&L correlation (all days, flat=0):
+             NQ_I2v1  NQ_A3C3  ES_I2_22_58  ES_I2_40_15
+NQ_I2v1         1.00     0.56         0.33         0.31
+NQ_A3C3         0.56     1.00         0.18         0.32
+ES_I2_22_58     0.33     0.18         1.00         0.72
+ES_I2_40_15     0.31     0.32         0.72         1.00
+days traded: NQ 81  ES 75  both 48
+corr on both-days: {'NQ_I2v1': 1.0, 'NQ_A3C3': 0.38, 'ES_I2_22_58': 0.5, 'ES_I2_40_15': 0.46}
+same-day direction agreement: 48/48
+median |entry slot gap| (min): 20.0
+ES_I2_22_58: on NQ-I2 days n=48 avg=77 | off n=27 avg=180
+ES_I2_40_15: on NQ-I2 days n=48 avg=200 | off n=27 avg=95
+NQ_I2v1: on ES-I2 days n=48 avg=240 | off n=33 avg=9
+ES open vs own VA   -1    0   1
+NQ open vs own VA              
+-1                 117   17   0
+ 0                  17  122   2
+ 1                   0   14  85
+
+===== validation: 128 common tradable days
+daily P&L correlation (all days, flat=0):
+             NQ_I2v1  NQ_A3C3  ES_I2_22_58  ES_I2_40_15
+NQ_I2v1         1.00     0.27         0.36         0.32
+NQ_A3C3         0.27     1.00         0.40         0.43
+ES_I2_22_58     0.36     0.40         1.00         0.83
+ES_I2_40_15     0.32     0.43         0.83         1.00
+days traded: NQ 36  ES 23  both 17
+corr on both-days: {'NQ_I2v1': 1.0, 'NQ_A3C3': 0.16, 'ES_I2_22_58': 0.54, 'ES_I2_40_15': 0.5}
+same-day direction agreement: 17/17
+median |entry slot gap| (min): 15.0
+ES_I2_22_58: on NQ-I2 days n=17 avg=799 | off n=6 avg=196
+ES_I2_40_15: on NQ-I2 days n=17 avg=578 | off n=6 avg=344
+NQ_I2v1: on ES-I2 days n=17 avg=521 | off n=19 avg=-454
+ES open vs own VA  -1   0   1
+NQ open vs own VA            
+-1                 43  15   0
+ 0                  7  33   0
+ 1                  0   7  23

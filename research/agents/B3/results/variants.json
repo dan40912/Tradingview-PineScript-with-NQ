@@ -1,1 +1,1 @@
-{"n_model_variants": 78, "n_threshold_variants": 3, "tasks": ["dir_09:45_60", "dir_09:45_120", "hit_09:45_40", "hit_09:45_80", "dir_10:00_60", "dir_10:00_120", "hit_10:00_40", "hit_10:00_80", "dir_10:30_60", "dir_10:30_120", "hit_10:30_40", "hit_10:30_80", "meta_i2"]}
+{"n_model_variants": 120, "n_threshold_variants": 3, "tasks": ["dir_09:45_60", "dir_09:45_120", "hit_09:45_40", "hit_09:45_80", "dir_10:00_60", "dir_10:00_120", "hit_10:00_40", "hit_10:00_80", "dir_10:30_60", "dir_10:30_120", "hit_10:30_40", "hit_10:30_80", "meta_i2"]}
