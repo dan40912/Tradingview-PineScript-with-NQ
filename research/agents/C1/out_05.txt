@@ -1,0 +1,7 @@
+           strategy     period  tp_exits  tp_exits_lt25  base  through_1tick  through_2tick  sharpe_2tick  dd_2tick
+       C1_I2_A3X_TS  discovery        53             27 197.4          197.4          176.0          1.88   -2638.0
+       C1_I2_A3X_TS validation        25             18 116.6          116.6          116.6          1.43   -1886.0
+C1_ORB15_POC_A3X_TS  discovery        55             21 217.7          217.7          217.7          1.83   -5246.0
+C1_ORB15_POC_A3X_TS validation        19              6 248.1          248.1          248.1          1.28   -4846.0
+  C1_ORB15_TP110_TS  discovery        75              0 377.2          377.2          377.2          2.26   -6054.0
+  C1_ORB15_TP110_TS validation        25              0 156.3          156.3          156.3          0.99   -5896.0

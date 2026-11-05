@@ -1,0 +1,33 @@
+variant,period,n,avg,maxdd,retdd,sharpe,worst,lstreak
+I2+A3X (no overlay)=A3_C3,discovery,81,195.0,-3583.0,4.41,1.71,-1248.0,3
+I2+A3X (no overlay)=A3_C3,validation,36,210.9,-1719.0,4.42,2.1,-1248.0,3
+I2+A3X+TS (cand),discovery,81,197.4,-2638.0,6.06,2.14,-1248.0,3
+I2+A3X+TS (cand),validation,36,116.6,-1886.0,2.23,1.43,-1248.0,3
+I2+A3X+volpoor,discovery,70,269.6,-2335.0,8.08,2.28,-1248.0,3
+I2+A3X+volpoor,validation,32,191.8,-1791.0,3.43,1.77,-1248.0,3
+I2+A3X+TS+volpoor,discovery,70,254.3,-2014.0,8.84,2.52,-1248.0,3
+I2+A3X+TS+volpoor,validation,32,108.5,-1850.0,1.88,1.2,-1248.0,3
+ORB15+A3X (no overlay),discovery,143,352.6,-6682.0,7.55,1.79,-1248.0,5
+ORB15+A3X (no overlay),validation,52,217.8,-5894.0,1.92,1.06,-1248.0,6
+ORB15+A3X+TS (cand),discovery,143,217.7,-5246.0,5.93,1.83,-1248.0,5
+ORB15+A3X+TS (cand),validation,52,248.1,-4846.0,2.66,1.28,-1248.0,6
+ORB15+A3X+TS+volpoor,discovery,127,167.1,-5870.0,3.62,1.58,-1248.0,6
+ORB15+A3X+TS+volpoor,validation,50,265.9,-4846.0,2.74,1.32,-1248.0,6
+ORB15+TP110 (no overlay),discovery,143,456.1,-7035.0,9.27,2.12,-2948.0,3
+ORB15+TP110 (no overlay),validation,52,205.5,-9640.0,1.11,0.95,-2948.0,3
+ORB15+TP110+TS (cand),discovery,143,377.2,-6054.0,8.91,2.26,-2948.0,3
+ORB15+TP110+TS (cand),validation,52,156.3,-5896.0,1.38,0.99,-2948.0,3
+ORB15first+A3X+TS,discovery,106,261.2,-7473.0,3.7,1.78,-1248.0,4
+ORB15first+A3X+TS,validation,40,130.3,-4682.0,1.11,0.7,-1248.0,5
+ORB15first+TP110+TS,discovery,106,470.4,-4471.0,11.15,2.51,-2948.0,3
+ORB15first+TP110+TS,validation,40,171.4,-6099.0,1.12,0.94,-2948.0,4
+DBL(I2 entry)+A3X+TS,discovery,24,421.3,-624.0,16.2,2.21,-624.0,1
+DBL(I2 entry)+A3X+TS,validation,8,204.6,-1248.0,1.31,1.26,-1248.0,1
+DBLlater+A3X+TS,discovery,23,480.5,-588.0,18.8,2.4,-588.0,1
+DBLlater+A3X+TS,validation,7,369.6,0.0,inf,3.09,176.0,0
+GAP0931+A3X+TS,discovery,233,132.4,-16454.0,1.88,1.11,-1248.0,17
+GAP0931+A3X+TS,validation,88,-71.9,-16032.0,-0.39,-0.82,-1248.0,10
+I2_1x5+A3X+TS,discovery,96,116.2,-3228.0,3.46,1.22,-1248.0,3
+I2_1x5+A3X+TS,validation,41,105.5,-3120.0,1.39,1.0,-1248.0,3
+"FIRST(I2,ORB15)+A3X+TS",discovery,159,250.4,-4431.0,8.98,2.28,-1248.0,6
+"FIRST(I2,ORB15)+A3X+TS",validation,60,297.6,-4279.0,4.17,1.78,-1248.0,5

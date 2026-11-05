@@ -1,0 +1,170 @@
+== 1. main table ==
+            strategy     period   n  win%   avg   total   maxdd  ret/dd  sharpe   worst  lstreak
+               I2v1  discovery  81  66.7 146.0 11822.0 -7456.0    1.59    0.84 -2948.0        4
+               I2v1 validation  36  61.1   6.4   232.0 -7840.0    0.03    0.04 -2948.0        3
+              A3_C3  discovery  81  70.4 195.0 15792.0 -3583.0    4.41    1.71 -1248.0        3
+              A3_C3 validation  36  69.4 210.9  7592.0 -1719.0    4.42    2.10 -1248.0        3
+      B1_I2_volpoor  discovery  70  70.0 294.4 20610.0 -5230.0    3.94    1.72 -2948.0        4
+      B1_I2_volpoor validation  32  62.5  43.1  1379.0 -5838.0    0.24    0.26 -2948.0        3
+    B2_I2_TrendSize  discovery  81  66.7 171.4 13884.0 -4111.0    3.38    1.26 -2948.0        4
+    B2_I2_TrendSize validation  36  61.1  24.7   889.0 -3166.0    0.28    0.21 -2948.0        3
+       C1_I2_A3X_TS  discovery  81  70.4 197.4 15992.0 -2638.0    6.06    2.14 -1248.0        3
+       C1_I2_A3X_TS validation  36  69.4 116.6  4199.0 -1886.0    2.23    1.43 -1248.0        3
+C1_ORB15_POC_A3X_TS  discovery 143  58.7 217.7 31131.0 -5246.0    5.93    1.83 -1248.0        5
+C1_ORB15_POC_A3X_TS validation  52  42.3 248.1 12902.0 -4846.0    2.66    1.28 -1248.0        6
+  C1_ORB15_TP110_TS  discovery 143  62.9 377.2 53938.0 -6054.0    8.91    2.26 -2948.0        3
+  C1_ORB15_TP110_TS validation  52  55.8 156.3  8130.0 -5896.0    1.38    0.99 -2948.0        3
+
+== 2. half-years (n / avg) ==
+                          2024H1      2024H2      2025H1      2025H2
+I2v1                 28 / -93.4  28 / 312.9  25 / 227.0    36 / 6.4
+A3_C3                28 / 230.0  28 / 242.4  25 / 102.6  36 / 210.9
+B1_I2_volpoor        22 / -92.5  27 / 285.5  21 / 711.3   32 / 43.1
+B2_I2_TrendSize      28 / -25.5  28 / 344.6  25 / 198.0   36 / 24.7
+C1_I2_A3X_TS         28 / 207.6  28 / 239.5  25 / 138.9  36 / 116.6
+C1_ORB15_POC_A3X_TS  50 / 197.2  42 / 218.4  51 / 237.2  52 / 248.1
+C1_ORB15_TP110_TS    50 / 207.6  42 / 425.6  51 / 503.5  52 / 156.3
+
+== 3. paired vs I2 v1 (same days) and daily diff over all tradable days ==
+            strategy     period  common_days  per_trade_diff              ci  daily_diff        daily_ci
+              A3_C3  discovery           81            49.0 [-177.5, 280.5]        10.6   [-38.3, 63.7]
+              A3_C3 validation           36           204.4 [-235.4, 653.7]        57.5  [-63.0, 184.5]
+      B1_I2_volpoor  discovery           70             0.0      [0.0, 0.0]        23.5    [-4.2, 57.5]
+      B1_I2_volpoor validation           32             0.0      [0.0, 0.0]         9.0   [-32.1, 54.3]
+    B2_I2_TrendSize  discovery           81            25.5  [-69.9, 127.1]         5.5   [-15.3, 28.1]
+    B2_I2_TrendSize validation           36            18.2 [-142.3, 188.0]         5.1   [-40.3, 52.9]
+       C1_I2_A3X_TS  discovery           81            51.5 [-175.6, 289.2]        11.1   [-38.3, 63.6]
+       C1_I2_A3X_TS validation           36           110.2 [-300.6, 546.6]        31.0  [-81.6, 153.3]
+C1_ORB15_POC_A3X_TS  discovery           65            67.1 [-329.9, 565.2]        51.6  [-41.0, 154.3]
+C1_ORB15_POC_A3X_TS validation           28           110.3 [-481.6, 793.0]        99.0 [-116.6, 349.3]
+  C1_ORB15_TP110_TS  discovery           65           212.0 [-156.5, 554.0]       112.6    [8.4, 214.8]
+  C1_ORB15_TP110_TS validation           28           204.9 [-291.0, 692.2]        61.7 [-127.2, 246.2]
+
+== 4. on I2-v1 days vs other days ==
+            strategy     period  on_n  on_avg  off_n  off_avg
+               I2v1  discovery    81   146.0      0      NaN
+               I2v1 validation    36     6.0      0      NaN
+              A3_C3  discovery    81   195.0      0      NaN
+              A3_C3 validation    36   211.0      0      NaN
+      B1_I2_volpoor  discovery    70   294.0      0      NaN
+      B1_I2_volpoor validation    32    43.0      0      NaN
+    B2_I2_TrendSize  discovery    81   171.0      0      NaN
+    B2_I2_TrendSize validation    36    25.0      0      NaN
+       C1_I2_A3X_TS  discovery    81   197.0      0      NaN
+       C1_I2_A3X_TS validation    36   117.0      0      NaN
+C1_ORB15_POC_A3X_TS  discovery    65   419.0     78     50.0
+C1_ORB15_POC_A3X_TS validation    28   313.0     24    172.0
+  C1_ORB15_TP110_TS  discovery    65   564.0     78    221.0
+  C1_ORB15_TP110_TS validation    28   408.0     24   -137.0
+
+== 5. execution: targets<25, trade-through by 1 tick, entry 1 min late, +$20 cost ==
+            strategy     period tgt_lt25  tgt_median  base_avg  through_avg  through_sharpe  through_dd  late1_avg  late1_sharpe  cost_plus20_avg
+       C1_I2_A3X_TS  discovery      51%       24.75     197.4        197.4            2.14     -2638.0      236.5          2.66            181.7
+       C1_I2_A3X_TS validation      69%       20.00     116.6        116.6            1.43     -1886.0      139.6          1.71            103.0
+C1_ORB15_POC_A3X_TS  discovery      19%       79.75     217.7        217.7            1.83     -5246.0      156.6          1.36            202.6
+C1_ORB15_POC_A3X_TS validation      31%       47.75     248.1        248.1            1.28     -4846.0      235.4          1.23            234.3
+  C1_ORB15_TP110_TS  discovery       0%      110.00     377.2        377.2            2.26     -6054.0      376.6          2.28            362.1
+  C1_ORB15_TP110_TS validation       0%      110.00     156.3        156.3            0.99     -5896.0      275.1          1.77            142.5
+              A3_C3  discovery      51%       24.75     195.0        195.0            1.71     -3583.0      255.7          2.37            175.0
+              A3_C3 validation      69%       20.00     210.9        210.9            2.10     -1719.0      233.8          2.32            190.9
+               I2v1  discovery       0%       55.00     146.0        146.0            0.84     -7456.0      106.3          0.60            126.0
+               I2v1 validation       0%       55.00       6.4          6.4            0.04     -7840.0      197.6          1.31            -13.6
+
+== 6. concentration ==
+            strategy     period  avg  drop_best1  drop_best5  drop_best10  best  median
+               I2v1  discovery  146         135          86           18  1052    1052
+               I2v1 validation    6         -23        -162         -396  1052     902
+              A3_C3  discovery  195         167          97           19  2397     352
+              A3_C3 validation  211         138          -2         -108  2747     352
+      B1_I2_volpoor  discovery  294         283         236          168  1052    1052
+      B1_I2_volpoor validation   43          11        -144         -416  1052     902
+    B2_I2_TrendSize  discovery  171         160         113           47  1052     526
+    B2_I2_TrendSize validation   25          -5        -141         -317  1052     526
+       C1_I2_A3X_TS  discovery  197         170         104           49  2397     352
+       C1_I2_A3X_TS validation  117          41         -46         -130  2747     176
+C1_ORB15_POC_A3X_TS  discovery  218         162          82           18  8148     176
+C1_ORB15_POC_A3X_TS validation  248          72        -274         -414  9242    -170
+  C1_ORB15_TP110_TS  discovery  377         365         313          244  2152    1076
+  C1_ORB15_TP110_TS validation  156         117         -56         -300  2152    1076
+
+== 7. neighbours ==
+           candidate       change  D_n  D_avg     D_dd  D_sharpe  D_halves_pos  V_n  V_avg    V_dd  V_sharpe
+       C1_I2_A3X_TS    base=None   81  197.4  -2638.0      2.14             3   36  116.6 -1886.0      1.43
+       C1_I2_A3X_TS poc_floor=15   81  195.5  -2192.0      2.19             3   36  123.9 -2271.0      1.57
+       C1_I2_A3X_TS poc_floor=25   81  192.7  -2638.0      2.00             3   36   66.4 -2891.0      0.76
+       C1_I2_A3X_TS        sl=45   81  193.2  -1896.0      2.20             3   36   28.9 -2962.0      0.36
+       C1_I2_A3X_TS        sl=75   81  187.5  -2092.0      1.95             3   36  152.2 -1548.0      1.95
+       C1_I2_A3X_TS  np=(20, 20)   81  165.9  -2702.0      1.87             3   36   87.3 -2291.0      1.07
+       C1_I2_A3X_TS  np=(45, 20)   81  173.0  -2638.0      1.80             3   36  154.8 -1248.0      1.83
+       C1_I2_A3X_TS  np=(30, 15)   81  194.7  -2638.0      2.07             3   36  139.8 -1415.0      1.65
+       C1_I2_A3X_TS  np=(30, 25)   81  197.4  -2638.0      2.14             3   36   80.1 -2462.0      0.98
+       C1_I2_A3X_TS    exit=1559   81  167.0  -2638.0      1.79             3   36   82.9 -2978.0      0.97
+C1_ORB15_POC_A3X_TS    base=None  143  217.7  -5246.0      1.83             3   52  248.1 -4846.0      1.28
+C1_ORB15_POC_A3X_TS         N=10  152  210.4  -4052.0      1.85             3   55  256.9 -5560.0      1.38
+C1_ORB15_POC_A3X_TS         N=20  123  213.5  -4384.0      1.69             3   47  207.3 -4380.0      1.17
+C1_ORB15_POC_A3X_TS poc_floor=15  143  217.5  -5296.0      1.84             3   52  268.0 -4846.0      1.39
+C1_ORB15_POC_A3X_TS poc_floor=25  143  228.9  -5196.0      1.92             3   52  243.1 -4819.0      1.25
+C1_ORB15_POC_A3X_TS        sl=45  143  120.7 -11111.0      1.11             3   52  245.4 -6149.0      1.29
+C1_ORB15_POC_A3X_TS        sl=75  143  221.2  -7535.0      1.77             3   52  197.0 -6019.0      1.00
+C1_ORB15_POC_A3X_TS  np=(20, 20)  143  200.5  -5362.0      1.71             3   52  234.1 -4846.0      1.21
+C1_ORB15_POC_A3X_TS  np=(45, 20)  143  216.3  -5304.0      1.80             3   52  253.3 -4846.0      1.30
+C1_ORB15_POC_A3X_TS  np=(30, 15)  143  212.3  -4882.0      1.78             3   52  214.5 -5101.0      1.10
+C1_ORB15_POC_A3X_TS  np=(30, 25)  143  220.4  -5580.0      1.86             3   52  223.2 -6451.0      1.15
+C1_ORB15_POC_A3X_TS    exit=1559  143  201.2  -5964.0      1.52             3   52  226.2 -5806.0      1.11
+  C1_ORB15_TP110_TS    base=None  143  377.2  -6054.0      2.26             3   52  156.3 -5896.0      0.99
+  C1_ORB15_TP110_TS         N=10  152  320.1  -6793.0      1.94             3   55  192.5 -6294.0      1.22
+  C1_ORB15_TP110_TS         N=20  123  427.9  -6343.0      2.40             3   47  127.9 -5896.0      0.78
+  C1_ORB15_TP110_TS        tp=90  143  352.0  -6540.0      2.28             3   52  253.9 -3872.0      1.83
+  C1_ORB15_TP110_TS       tp=130  143  336.6  -9277.0      1.83             3   52  103.2 -7964.0      0.61
+  C1_ORB15_TP110_TS       sl=120  143  325.5  -7640.0      2.01             3   52  147.3 -4896.0      0.99
+  C1_ORB15_TP110_TS       sl=170  143  398.1  -5221.0      2.37             3   52  174.3 -5392.0      1.05
+  C1_ORB15_TP110_TS   exit=15:30  143  395.0  -5680.0      2.40             3   52  163.4 -5896.0      1.05
+  C1_ORB15_TP110_TS   exit=15:00  143  406.3  -4820.0      2.49             3   52  150.9 -6477.0      0.98
+  C1_ORB15_TP110_TS    exit=1229  143  371.0  -5214.0      2.56             3   52   18.3 -8197.0      0.13
+C1_I2_A3X_TS disc positive 9 / 9  disc>=50 9  all-3-halves 9  | val positive 9 / 9
+C1_ORB15_POC_A3X_TS disc positive 11 / 11  disc>=50 11  all-3-halves 11  | val positive 11 / 11
+C1_ORB15_TP110_TS disc positive 9 / 9  disc>=50 9  all-3-halves 9  | val positive 9 / 9
+
+== 8. secondary variants ==
+                   variant     period   n   avg    maxdd  retdd  sharpe   worst  lstreak
+I2+A3X (no overlay)=A3_C3  discovery  81 195.0  -3583.0   4.41    1.71 -1248.0        3
+I2+A3X (no overlay)=A3_C3 validation  36 210.9  -1719.0   4.42    2.10 -1248.0        3
+         I2+A3X+TS (cand)  discovery  81 197.4  -2638.0   6.06    2.14 -1248.0        3
+         I2+A3X+TS (cand) validation  36 116.6  -1886.0   2.23    1.43 -1248.0        3
+           I2+A3X+volpoor  discovery  70 269.6  -2335.0   8.08    2.28 -1248.0        3
+           I2+A3X+volpoor validation  32 191.8  -1791.0   3.43    1.77 -1248.0        3
+        I2+A3X+TS+volpoor  discovery  70 254.3  -2014.0   8.84    2.52 -1248.0        3
+        I2+A3X+TS+volpoor validation  32 108.5  -1850.0   1.88    1.20 -1248.0        3
+   ORB15+A3X (no overlay)  discovery 143 352.6  -6682.0   7.55    1.79 -1248.0        5
+   ORB15+A3X (no overlay) validation  52 217.8  -5894.0   1.92    1.06 -1248.0        6
+      ORB15+A3X+TS (cand)  discovery 143 217.7  -5246.0   5.93    1.83 -1248.0        5
+      ORB15+A3X+TS (cand) validation  52 248.1  -4846.0   2.66    1.28 -1248.0        6
+     ORB15+A3X+TS+volpoor  discovery 127 167.1  -5870.0   3.62    1.58 -1248.0        6
+     ORB15+A3X+TS+volpoor validation  50 265.9  -4846.0   2.74    1.32 -1248.0        6
+ ORB15+TP110 (no overlay)  discovery 143 456.1  -7035.0   9.27    2.12 -2948.0        3
+ ORB15+TP110 (no overlay) validation  52 205.5  -9640.0   1.11    0.95 -2948.0        3
+    ORB15+TP110+TS (cand)  discovery 143 377.2  -6054.0   8.91    2.26 -2948.0        3
+    ORB15+TP110+TS (cand) validation  52 156.3  -5896.0   1.38    0.99 -2948.0        3
+        ORB15first+A3X+TS  discovery 106 261.2  -7473.0   3.70    1.78 -1248.0        4
+        ORB15first+A3X+TS validation  40 130.3  -4682.0   1.11    0.70 -1248.0        5
+      ORB15first+TP110+TS  discovery 106 470.4  -4471.0  11.15    2.51 -2948.0        3
+      ORB15first+TP110+TS validation  40 171.4  -6099.0   1.12    0.94 -2948.0        4
+     DBL(I2 entry)+A3X+TS  discovery  24 421.3   -624.0  16.20    2.21  -624.0        1
+     DBL(I2 entry)+A3X+TS validation   8 204.6  -1248.0   1.31    1.26 -1248.0        1
+          DBLlater+A3X+TS  discovery  23 480.5   -588.0  18.80    2.40  -588.0        1
+          DBLlater+A3X+TS validation   7 369.6      0.0    inf    3.09   176.0        0
+           GAP0931+A3X+TS  discovery 233 132.4 -16454.0   1.88    1.11 -1248.0       17
+           GAP0931+A3X+TS validation  88 -71.9 -16032.0  -0.39   -0.82 -1248.0       10
+            I2_1x5+A3X+TS  discovery  96 116.2  -3228.0   3.46    1.22 -1248.0        3
+            I2_1x5+A3X+TS validation  41 105.5  -3120.0   1.39    1.00 -1248.0        3
+   FIRST(I2,ORB15)+A3X+TS  discovery 159 250.4  -4431.0   8.98    2.28 -1248.0        6
+   FIRST(I2,ORB15)+A3X+TS validation  60 297.6  -4279.0   4.17    1.78 -1248.0        5
+
+== 9. long/short, months, exits ==
+            strategy     period  long_n  long_avg  short_n  short_avg  months_pos  months_neg half_size_share                     exit_reasons
+       C1_I2_A3X_TS  discovery      37       137       44        248          13           5             43% {'tp': 53, 'time': 16, 'sl': 12}
+       C1_I2_A3X_TS validation      12        90       24        130           5           1             64%   {'tp': 25, 'time': 6, 'sl': 5}
+C1_ORB15_POC_A3X_TS  discovery      61       367       82        106          11           7             49% {'tp': 55, 'time': 48, 'sl': 40}
+C1_ORB15_POC_A3X_TS validation      18       520       34        104           3           3             62% {'sl': 20, 'tp': 19, 'time': 13}
+  C1_ORB15_TP110_TS  discovery      61       699       82        138          14           4             49% {'tp': 75, 'time': 40, 'sl': 28}
+  C1_ORB15_TP110_TS validation      18       328       34         66           4           2             62% {'tp': 25, 'time': 14, 'sl': 13}

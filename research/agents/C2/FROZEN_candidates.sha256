@@ -1,1 +1,3 @@
-9182580373b413798e1839eef0325c91b6b1e300bac5e87e7e9dac2870354102  candidates.py
+9182580373b413798e1839eef0325c91b6b1e300bac5e87e7e9dac2870354102  frozen_prevalidation_candidates.py
+# Hash taken BEFORE 11_validate.py was run (file was then named candidates.py; copied byte-for-byte).
+# candidates.py now only re-exports these functions and adds the post-hoc te_outside_noi2 wrapper.
