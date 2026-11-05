@@ -1,3 +1,24 @@
+agent  variants                                                              note
+   A1       640                                 variants_log 576 + explore 55 + 9
+   A2       190     engine variants (+72 descriptive screens, 20 random controls)
+   A3       980 discovery grid (+179 validation neighbours looked at, +26 stress)
+   B1       275                                                                  
+   B2       558                                                                  
+   B3       590       trade rules (+1,494 single-feature IC tests, 120 ML models)
+   C1      3860                                  incl. 3,420-cell robustness grid
+   C2       375                210 engine + ~165 descriptive (+40 post-val looks)
+   C3       286                                                                  
+TOTAL reported variants (trade rules): 7754  (+ ~1,500 IC tests, + >1,000 rule combos of the pre-project history on 2024-2026)
+  A1/variants_log.csv                    n=  576 mean= 0.54 sd=1.12 max= 3.27
+  A2/variant_log.csv                     n=  136 mean= 0.40 sd=0.85 max= 2.05
+  C2/variant_log.csv                     n=  210 mean= 0.33 sd=0.98 max= 1.83
+  C1/out_03_grid.csv                     n= 3420 mean= 1.64 sd=0.50 max= 3.21
+  C1/out_01_screen.csv                   n=  360 mean= 1.31 sd=0.62 max= 2.99
+  A3/out_grid_pts.csv                    n=  110 mean= 0.53 sd=0.35 max= 1.21
+  A3/out_mgmt.csv                        n=  308 mean= 0.99 sd=0.40 max= 2.08
+  C3/out_01_es_grid_discovery.csv        n=  150 mean=-0.57 sd=0.65 max= 0.83
+  B3/results/simple_rules.csv            n=   36 mean= 0.65 sd=0.76 max= 2.31
+pooled discovery annualised Sharpe across 5306 logged trials: mean 1.28, sd 0.85
                     cand  period  T_days  SR_ann  p_raw(SR>0)  DSR_null_N10  DSR_null_N100  DSR_null_N1000  DSR_null_N7754  DSR_emp_N1000  DSR_emp_N7754  Bonf_p_agent  Bonf_p_all
         A1/OOV_ORB15_EOD    disc     374    1.91       0.0012         0.837          0.395           0.112           0.027          0.087          0.018         0.768       1.000
         A1/OOV_ORB15_EOD 2024-25     502    1.61       0.0023         0.810          0.377           0.112           0.029          0.022          0.002         1.000       1.000

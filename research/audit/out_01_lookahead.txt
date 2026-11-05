@@ -5,3 +5,39 @@ sample days: 94
   day 21/94 2024-05-31  475s
   day 31/94 2024-08-27  693s
   day 41/94 2024-11-11  928s
+  day 51/94 2025-02-20  1127s
+  day 61/94 2025-05-19  1340s
+  day 71/94 2025-07-29  1545s
+  day 81/94 2025-10-08  1704s
+  day 91/94 2025-12-17  1861s
+status                      ok  uses_fill_price
+cand                                           
+A1/OOV_ORB15_EOD          1046               82
+A1/OOV_ORB30_1R           1047               81
+A1/OOV_ORB30_1R_RISK1500  1047               81
+A2/A2_TREND_EXT_FOLLOW    1128                0
+A3/A3_C3_POC_SL60_NP30    1102               26
+B1/B1_I2_volpoor          1128                0
+B1/B1_ONVA_I2             1128                0
+B2/B2_I2_TrendSize        1128                0
+B3/B3_NQES_RS_0945_T120   1128                0
+C1/C1_I2_A3X_TS           1102               26
+C1/C1_ORB15_POC_A3X_TS    1084               44
+C1/C1_ORB15_TP110_TS      1128                0
+C2/C2_TE_OUTSIDE          1128                0
+C2/C2_TE_OUTSIDE_NOI2     1128                0
+C3/C3_ES_I2_40_15         1128                0
+C3/C3_PORT_A3C3_ES        1102               26
+C3/C3_PORT_I2v1_ES        1128                0
+Empty DataFrame
+Columns: [cand, date, S, mode, status, detail, has_base_sig]
+Index: []
+cand
+A1/OOV_ORB15_EOD            82
+A1/OOV_ORB30_1R             81
+A1/OOV_ORB30_1R_RISK1500    81
+A3/A3_C3_POC_SL60_NP30      26
+C1/C1_I2_A3X_TS             26
+C1/C1_ORB15_POC_A3X_TS      44
+C3/C3_PORT_A3C3_ES          26
+dtype: int64
