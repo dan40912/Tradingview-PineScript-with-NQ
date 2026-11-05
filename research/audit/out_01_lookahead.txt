@@ -2,3 +2,6 @@ days with >1 signal per candidate: {}
 sample days: 94
   day 1/94 2024-01-11  26s
   day 11/94 2024-04-15  231s
+  day 21/94 2024-05-31  475s
+  day 31/94 2024-08-27  693s
+  day 41/94 2024-11-11  928s
