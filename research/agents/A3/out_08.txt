@@ -1,0 +1,83 @@
+             strategy      split   n  win%   avg   total    maxdd  ret/dd  sharpe_ann     t
+     I2v1 base 55/145  discovery  81  66.7 146.0 11822.0  -7456.0    1.59        0.84  1.02
+     I2v1 base 55/145 validation  36  61.1   6.4   232.0  -7840.0    0.03        0.04  0.03
+     I2v1 base 55/145        ALL 117  65.0 103.0 12054.0  -8224.0    1.47        0.61  0.86
+     A3_C1_TP100_SL60  discovery  81  51.9 212.2 17187.0  -5361.0    3.21        1.12  1.37
+     A3_C1_TP100_SL60 validation  36  41.7  -7.7  -278.0  -8656.0   -0.03       -0.05 -0.04
+     A3_C1_TP100_SL60        ALL 117  48.7 144.5 16909.0 -13293.0    1.27        0.81  1.14
+A3_C2_TP100_SL60_NP30  discovery  81  50.6 253.2 20507.0  -4881.0    4.20        1.40  1.72
+A3_C2_TP100_SL60_NP30 validation  36  36.1 -33.0 -1188.0  -8855.0   -0.13       -0.22 -0.15
+A3_C2_TP100_SL60_NP30        ALL 117  46.2 165.1 19319.0 -13723.0    1.41        0.96  1.36
+  A3_C3_POC_SL60_NP30  discovery  81  70.4 195.0 15792.0  -3583.0    4.41        1.71  2.12
+  A3_C3_POC_SL60_NP30 validation  36  69.4 210.9  7592.0  -1719.0    4.42        2.10  1.51
+  A3_C3_POC_SL60_NP30        ALL 117  70.1 199.9 23384.0  -3583.0    6.53        1.82  2.62
+
+-- I2v1 base 55/145: by year
+          n  win%    avg    total   maxdd
+2024   56.0  64.3  109.8   6147.0 -7456.0
+2025   61.0  65.6   96.8   5907.0 -8224.0
+ALL   117.0  65.0  103.0  12054.0 -8224.0
+validation exit reasons: {'sl': {'count': 3, 'mean': -2948.0, 'sum': -8844.0}, 'time': {'count': 15, 'mean': -657.0, 'sum': -9860.0}, 'tp': {'count': 18, 'mean': 1052.0, 'sum': 18936.0}}
+
+-- A3_C1_TP100_SL60: by year
+          n  win%    avg    total    maxdd
+2024   56.0  51.8  193.9  10857.0  -3744.0
+2025   61.0  45.9   99.2   6052.0 -13293.0
+ALL   117.0  48.7  144.5  16909.0 -13293.0
+validation exit reasons: {'sl': {'count': 16, 'mean': -1248.0, 'sum': -19968.0}, 'time': {'count': 12, 'mean': 340.0, 'sum': 4074.0}, 'tp': {'count': 8, 'mean': 1952.0, 'sum': 15616.0}}
+
+-- A3_C2_TP100_SL60_NP30: by year
+          n  win%    avg    total    maxdd
+2024   56.0  50.0  244.6  13697.0  -3744.0
+2025   61.0  42.6   92.2   5622.0 -13723.0
+ALL   117.0  46.2  165.1  19319.0 -13723.0
+validation exit reasons: {'sl': {'count': 14, 'mean': -1248.0, 'sum': -17472.0}, 'time': {'count': 14, 'mean': 48.0, 'sum': 668.0}, 'tp': {'count': 8, 'mean': 1952.0, 'sum': 15616.0}}
+
+-- A3_C3_POC_SL60_NP30: by year
+          n  win%    avg    total   maxdd
+2024   56.0  73.2  236.2  13227.0 -2116.0
+2025   61.0  67.2  166.5  10157.0 -3583.0
+ALL   117.0  70.1  199.9  23384.0 -3583.0
+validation exit reasons: {'sl': {'count': 5, 'mean': -1248.0, 'sum': -6240.0}, 'time': {'count': 6, 'mean': -306.0, 'sum': -1838.0}, 'tp': {'count': 25, 'mean': 627.0, 'sum': 15670.0}}
+
+== paired per-trade difference vs I2 v1 base (same dates) ==
+A3_C1_TP100_SL60             discovery  n=81 mean diff=   66.2  95%CI=(np.float64(-186.2), np.float64(308.3))  share better=0.51 worse=0.31
+A3_C1_TP100_SL60             validation n=36 mean diff=  -14.2  95%CI=(np.float64(-380.3), np.float64(325.6))  share better=0.50 worse=0.36
+A3_C2_TP100_SL60_NP30        discovery  n=81 mean diff=  107.2  95%CI=(np.float64(-152.5), np.float64(348.7))  share better=0.54 worse=0.32
+A3_C2_TP100_SL60_NP30        validation n=36 mean diff=  -39.4  95%CI=(np.float64(-415.0), np.float64(318.3))  share better=0.50 worse=0.42
+A3_C3_POC_SL60_NP30          discovery  n=81 mean diff=   49.0  95%CI=(np.float64(-177.5), np.float64(280.5))  share better=0.44 worse=0.54
+A3_C3_POC_SL60_NP30          validation n=36 mean diff=  204.4  95%CI=(np.float64(-235.4), np.float64(653.7))  share better=0.50 worse=0.50
+
+== overlap: candidate trades on I2-v1 days vs other days ==
+I2v1 base 55/145             on I2 days: 117  on non-I2 days: 0
+A3_C1_TP100_SL60             on I2 days: 117  on non-I2 days: 0
+A3_C2_TP100_SL60_NP30        on I2 days: 117  on non-I2 days: 0
+A3_C3_POC_SL60_NP30          on I2 days: 117  on non-I2 days: 0
+
+== validation neighbourhood (report only; base I2 v1 validation avg = 6.4 ) ==
+C1 9 cells; avg>0: 1 ; avg > base: 1 ; median avg -44.9 ; median maxdd -9602.0
+C2 81 cells; avg>0: 28 ; avg > base: 23 ; median avg -14.1 ; median maxdd -8440.0
+C3 81 cells; avg>0: 81 ; avg > base: 81 ; median avg 138.7 ; median maxdd -2039.0
+fam      p    avg  sharpe    maxdd
+ C1  85/45  -82.6   -0.60  -7197.0
+ C1  85/60   31.4    0.21  -6646.0
+ C1  85/80   -5.8   -0.04  -7979.0
+ C1 100/45  -99.4   -0.68  -9602.0
+ C1 100/60   -7.7   -0.05  -8656.0
+ C1 100/80  -44.9   -0.27 -10289.0
+ C1 120/45 -114.9   -0.77 -10492.0
+ C1 120/60  -23.3   -0.15  -9946.0
+ C1 120/80  -60.5   -0.35 -11275.0
+
+== secondary: C2 exits on I2+H1 entries ==
+H1 55/145 discovery {'n': 66, 'win%': np.float64(69.7), 'avg': np.float64(217.6), 'total': np.float64(14362.0), 'maxdd': -4902.0, 'ret/dd': np.float64(2.93), 'sharpe_ann': np.float64(1.13)}
+H1 55/145 validation {'n': 31, 'win%': np.float64(61.3), 'avg': np.float64(66.5), 'total': np.float64(2062.0), 'maxdd': -5076.0, 'ret/dd': np.float64(0.41), 'sharpe_ann': np.float64(0.39)}
+H1 C2 discovery {'n': 66, 'win%': np.float64(54.5), 'avg': np.float64(377.5), 'total': np.float64(24917.0), 'maxdd': -3744.0, 'ret/dd': np.float64(6.66), 'sharpe_ann': np.float64(1.87)}
+H1 C2 validation {'n': 31, 'win%': np.float64(35.5), 'avg': np.float64(13.6), 'total': np.float64(422.0), 'maxdd': -7181.0, 'ret/dd': np.float64(0.06), 'sharpe_ann': np.float64(0.08)}
+
+== secondary: ES I2 ==
+ES 22/58 (prior) discovery {'n': 76, 'win%': np.float64(55.3), 'avg': np.float64(106.3), 'total': np.float64(8080.0), 'maxdd': -3142.0, 'ret/dd': np.float64(2.57), 'sharpe_ann': np.float64(0.83)}
+ES 22/58 (prior) validation {'n': 23, 'win%': np.float64(87.0), 'avg': np.float64(642.0), 'total': np.float64(14766.0), 'maxdd': -958.0, 'ret/dd': np.float64(15.41), 'sharpe_ann': np.float64(5.13)}
+ES 45/20 (flipped) discovery {'n': 76, 'win%': np.float64(50.0), 'avg': np.float64(151.2), 'total': np.float64(11492.0), 'maxdd': -5330.0, 'ret/dd': np.float64(2.16), 'sharpe_ann': np.float64(1.05)}
+ES 45/20 (flipped) validation {'n': 23, 'win%': np.float64(82.6), 'avg': np.float64(473.5), 'total': np.float64(10891.0), 'maxdd': -1108.0, 'ret/dd': np.float64(9.83), 'sharpe_ann': np.float64(4.02)}
+validation-stage evaluations: 179

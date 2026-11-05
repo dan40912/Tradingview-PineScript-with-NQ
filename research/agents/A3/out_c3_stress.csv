@@ -1,0 +1,33 @@
+test,split,n,win%,avg,total,maxdd,ret/dd,sharpe_ann
+C3 as frozen,discovery,81,70.4,195.0,15792.0,-3583.0,4.41,1.71
+C3 as frozen,validation,36,69.4,210.9,7592.0,-1719.0,4.42,2.1
+target needs +0.5pt trade-through,discovery,81,67.9,152.0,12312.0,-3583.0,3.44,1.3
+target needs +0.5pt trade-through,validation,36,69.4,210.9,7592.0,-1719.0,4.42,2.1
+extra slippage $10/trade,discovery,81,70.4,185.0,14982.0,-3643.0,4.11,1.63
+extra slippage $10/trade,validation,36,69.4,200.9,7232.0,-1749.0,4.13,2.0
+extra slippage $20/trade,discovery,81,70.4,175.0,14172.0,-3703.0,3.83,1.54
+extra slippage $20/trade,validation,36,69.4,190.9,6872.0,-1779.0,3.86,1.91
+extra slippage $40/trade,discovery,81,70.4,155.0,12552.0,-3823.0,3.28,1.37
+extra slippage $40/trade,validation,36,69.4,170.9,6152.0,-1839.0,3.35,1.71
+entry 1 min late,discovery,81,74.1,248.4,20117.0,-2364.0,8.51,2.28
+entry 1 min late,validation,36,75.0,264.5,9522.0,-2088.0,4.56,2.44
+entry 2 min late,discovery,81,65.4,128.3,10392.0,-3027.0,3.43,1.15
+entry 2 min late,validation,36,75.0,233.0,8387.0,-2496.0,3.36,2.13
+"ablation: POC target, SL145, no NP",discovery,81,77.8,153.7,12447.0,-6470.0,1.92,0.98
+"ablation: POC target, SL145, no NP",validation,36,83.3,312.7,11257.0,-2948.0,3.82,2.81
+"ablation: POC target, SL60, no NP",discovery,81,72.8,153.5,12432.0,-3712.0,3.35,1.26
+"ablation: POC target, SL60, no NP",validation,36,75.0,230.1,8282.0,-1792.0,4.62,2.15
+"ablation: POC target, SL145, NP30/20",discovery,81,71.6,179.6,14547.0,-6470.0,2.25,1.36
+"ablation: POC target, SL145, NP30/20",validation,36,72.2,338.9,12202.0,-1259.0,9.69,3.99
+"ablation: TP55, SL60, NP30/20",discovery,81,58.0,145.5,11782.0,-3828.0,3.08,1.09
+"ablation: TP55, SL60, NP30/20",validation,36,44.4,-72.9,-2623.0,-5742.0,-0.46,-0.59
+"ablation: TP55, SL145, NP30/20",discovery,81,61.7,206.2,16702.0,-5361.0,3.12,1.4
+"ablation: TP55, SL145, NP30/20",validation,36,50.0,-7.2,-258.0,-7685.0,-0.03,-0.05
+"ablation: TP30, SL60, NP30/20",discovery,81,69.1,101.6,8227.0,-4176.0,1.97,1.05
+"ablation: TP30, SL60, NP30/20",validation,36,58.3,-20.9,-753.0,-3147.0,-0.24,-0.23
+I2+H1 entries with C3 exits,discovery,66,71.2,255.7,16877.0,-2116.0,7.98,1.99
+I2+H1 entries with C3 exits,validation,31,67.7,162.5,5037.0,-1870.0,2.69,1.74
+ES I2 with C3 exits (scaled x0.2),discovery,76,55.3,-29.2,-2220.0,-6340.0,-0.35,-0.4
+ES I2 with C3 exits (scaled x0.2),validation,23,78.3,43.6,1004.0,-1416.0,0.71,0.74
+"ES I2 with C3 exits (SL 12, unscaled POC, NP 4pt)",discovery,76,60.5,-3.1,-233.0,-7118.0,-0.03,-0.04
+"ES I2 with C3 exits (SL 12, unscaled POC, NP 4pt)",validation,23,87.0,126.8,2916.0,-958.0,3.04,2.49

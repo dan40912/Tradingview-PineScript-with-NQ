@@ -1,0 +1,21 @@
+variant,split,n,win%,avg,total,maxdd,ret/dd,sharpe_ann
+frozen (POC = bin lower edge),discovery,81,70.4,195.0,15792.0,-3583.0,4.41,1.71
+frozen (POC = bin lower edge),validation,36,69.4,210.9,7592.0,-1719.0,4.42,2.1
+POC = bin midpoint (+2.5 price),discovery,81,69.1,167.7,13582.0,-3583.0,3.79,1.47
+POC = bin midpoint (+2.5 price),validation,36,69.4,204.2,7352.0,-1719.0,4.28,2.04
+POC = bin upper edge (+5 price),discovery,81,69.1,164.0,13282.0,-3583.0,3.71,1.45
+POC = bin upper edge (+5 price),validation,36,69.4,199.2,7172.0,-1719.0,4.17,1.99
+POC -2.5 price,discovery,81,70.4,199.8,16187.0,-3583.0,4.52,1.74
+POC -2.5 price,validation,36,69.4,217.8,7842.0,-1719.0,4.56,2.16
+target 5 pts shorter,discovery,81,70.4,161.3,13062.0,-3783.0,3.45,1.48
+target 5 pts shorter,validation,36,69.4,187.7,6757.0,-1719.0,3.93,1.93
+target 2.5 shorter,discovery,81,70.4,177.9,14407.0,-3683.0,3.91,1.6
+target 2.5 shorter,validation,36,69.4,198.7,7152.0,-1719.0,4.16,2.01
+target 2.5 longer,discovery,81,69.1,189.7,15362.0,-3483.0,4.41,1.61
+target 2.5 longer,validation,36,69.4,223.4,8042.0,-1719.0,4.68,2.18
+target 5 longer,discovery,81,69.1,201.6,16327.0,-3383.0,4.83,1.68
+target 5 longer,validation,36,69.4,236.3,8507.0,-1719.0,4.95,2.26
+"midpoint POC, floor 15",discovery,81,71.6,162.8,13187.0,-3187.0,4.14,1.46
+"midpoint POC, floor 15",validation,36,75.0,230.6,8302.0,-1729.0,4.8,2.45
+"midpoint POC, floor 25",discovery,81,66.7,156.7,12692.0,-3583.0,3.54,1.32
+"midpoint POC, floor 25",validation,36,61.1,142.3,5122.0,-2724.0,1.88,1.32
