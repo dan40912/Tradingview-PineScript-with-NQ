@@ -1,0 +1,7 @@
+strategy,split,n,net_avg,gross_avg,net_total,maxdd,sharpe
+A2_ON_SWEEP_2R,discovery,202,-70.6,37.4,-14260.0,-17496.0,-1.21
+A2_ON_SWEEP_2R,validation,67,-178.5,-70.5,-11961.0,-12151.0,-3.54
+A2_TREND_EXT_FOLLOW,discovery,121,5.9,113.9,712.0,-16808.0,0.03
+A2_TREND_EXT_FOLLOW,validation,48,2.1,110.1,102.0,-11573.0,0.01
+A2_CLOSE_REVERSAL_1530,discovery,361,-38.2,69.8,-13788.0,-22990.0,-0.99
+A2_CLOSE_REVERSAL_1530,validation,123,-74.5,33.5,-9159.0,-9585.0,-2.62
