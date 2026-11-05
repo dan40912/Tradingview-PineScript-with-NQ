@@ -8,7 +8,9 @@ import numpy as np, pandas as pd
 from lib import data, features, sim, metrics, strategies
 
 OUT = os.path.join(HERE, "results"); os.makedirs(os.path.join(OUT, "trades"), exist_ok=True)
-g = data.load_grid("NQ", include_holdout=True)
+NOHOLD = "--no-holdout" in sys.argv
+if NOHOLD: sys.argv.remove("--no-holdout")
+g = data.load_grid("NQ", include_holdout=not NOHOLD)
 lv = features.daily_levels(g)
 ndays = pd.Series(g.split[g.tradable]).value_counts().to_dict()
 
