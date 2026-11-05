@@ -1,0 +1,230 @@
+== sleeves sized at $1,000 stop-risk per trade, 2024-01..2025-12 ==
+                   n  total  maxdd  ret/dd  sharpe  worst_day  worst_month  neg_months  avg_contracts
+sleeve                                                                                              
+I2v1            117   3616  -2467    1.47    0.61       -884        -1250          12           0.30
+A3_C3           117  18707  -2866    6.53    1.82       -998        -1285           6           0.80
+C1_I2_A3X_TS    117  16153  -2144    7.53    1.93       -998        -1023           6           0.60
+C1_ORB15_POC    195  35226  -4197    8.39    1.57       -998        -3359          10           0.59
+C1_ORB15_TP110  195  17236  -1971    8.74    1.92       -884        -1210           6           0.20
+B1_volpoor      102   6597  -1870    3.53    1.25       -884        -1566           9           0.30
+B2_TrendSize    117   4704  -1122    4.19    1.10       -884         -758           9           0.20
+C2_TE_OUTSIDE   122  20876  -5816    3.59    1.36      -1017        -2922           8           0.37
+C2_TE_NOI2*      88  22589  -3022    7.47    1.74       -995        -2729           5           0.37
+A2_TREND_EXT    183  18838  -7052    2.67    1.06      -1017        -3257           9           0.37
+B3_NQES_RS      502  34696  -9283    3.74    1.44      -4711        -3284          10           0.30
+A1_OOV_ORB15    317  55539 -10405    5.34    1.61      -1076        -6758           9           0.55
+C3_ES_40_15      99  30658  -4048    7.57    1.79      -1115        -1813           8           1.30
+
+== daily P&L correlation (flat days = 0) ==
+                 I2v1  A3_C3  C1_I2_A3X_TS  C1_ORB15_POC  C1_ORB15_TP110  B1_volpoor  B2_TrendSize  C2_TE_OUTSIDE  C2_TE_NOI2*  A2_TREND_EXT  B3_NQES_RS  A1_OOV_ORB15  C3_ES_40_15
+I2v1            1.00   0.47          0.46          0.02            0.29        0.88          0.89          -0.03        -0.10         -0.02        0.08          0.10         0.31
+A3_C3           0.47   1.00          0.95          0.16            0.17        0.36          0.47           0.06        -0.02          0.05        0.13          0.16         0.35
+C1_I2_A3X_TS    0.46   0.95          1.00          0.21            0.20        0.39          0.52           0.06        -0.01          0.05        0.11          0.12         0.32
+C1_ORB15_POC    0.02   0.16          0.21          1.00            0.36        0.10          0.08           0.13         0.15          0.12       -0.02          0.14         0.06
+C1_ORB15_TP110  0.29   0.17          0.20          0.36            1.00        0.29          0.36           0.07         0.06          0.06        0.06          0.28         0.25
+B1_volpoor      0.88   0.36          0.39          0.10            0.29        1.00          0.84           0.03        -0.05          0.03        0.07          0.13         0.29
+B2_TrendSize    0.89   0.47          0.52          0.08            0.36        0.84          1.00           0.03        -0.04          0.03        0.04          0.11         0.25
+C2_TE_OUTSIDE  -0.03   0.06          0.06          0.13            0.07        0.03          0.03           1.00         0.85          0.86        0.22          0.42         0.03
+C2_TE_NOI2*    -0.10  -0.02         -0.01          0.15            0.06       -0.05         -0.04           0.85         1.00          0.73        0.18          0.29        -0.07
+A2_TREND_EXT   -0.02   0.05          0.05          0.12            0.06        0.03          0.03           0.86         0.73          1.00        0.24          0.36         0.05
+B3_NQES_RS      0.08   0.13          0.11         -0.02            0.06        0.07          0.04           0.22         0.18          0.24        1.00          0.17         0.15
+A1_OOV_ORB15    0.10   0.16          0.12          0.14            0.28        0.13          0.11           0.42         0.29          0.36        0.17          1.00         0.14
+C3_ES_40_15     0.31   0.35          0.32          0.06            0.25        0.29          0.25           0.03        -0.07          0.05        0.15          0.14         1.00
+
+== books 2024-01..2025-12 (account $50k, R=$1,000) ==
+                    n  total  maxdd  ret/dd  sharpe  worst_day  worst_month  neg_months  bootDD50  bootDD95  bootDD99  P(DD1y<-8224)
+book                                                                                                                               
+I2v1 (1 NQ)      117  12054  -8224    1.47    0.61      -2948        -4167          12     -8092    -17127    -22656          0.484
+D1_CONSERVATIVE  117  18707  -2866    6.53    1.82       -998        -1285           6     -2498     -4784     -6219          0.001
+D2_BALANCED      334  40760  -3027   13.46    2.42      -1513        -2251           5     -3193     -5846     -7643          0.006
+D3_EQUAL_RISK    334  68584  -5025   13.65    2.51      -2114        -3724           5     -5087     -9154    -12051          0.089
+D4_AGGRESSIVE    415  68206  -4857   14.04    2.59      -2064        -3701           6     -4998     -8937    -11578          0.077
+
+== per half-year ==
+ half             2024H1  2024H2  2025H1  2025H2
+book                                           
+D1_CONSERVATIVE    5153    5429    2052    6074
+D2_BALANCED       12120    8517    6135   13989
+D3_EQUAL_RISK     21982   10758   14743   21101
+D4_AGGRESSIVE     17378   13297   18491   19040
+I2v1 (1 NQ)       -2614    8761    5675     232
+half             2024H1  2024H2  2025H1  2025H2
+book                                           
+D1_CONSERVATIVE   -1201   -1566   -2866   -1375
+D2_BALANCED       -2244   -3027   -2700   -1615
+D3_EQUAL_RISK     -3995   -5025   -4334   -2361
+D4_AGGRESSIVE     -4857   -3455   -3575   -3310
+I2v1 (1 NQ)       -5508   -2948   -4844   -7840
+half             2024H1  2024H2  2025H1  2025H2
+book                                           
+D1_CONSERVATIVE    2.37    2.54    0.69    2.09
+D2_BALANCED        3.21    2.25    1.28    3.16
+D3_EQUAL_RISK      3.31    1.66    1.94    3.18
+D4_AGGRESSIVE      2.71    1.88    2.88    2.92
+I2v1 (1 NQ)       -0.59    1.80    1.19    0.04
+
+== by split ==
+                              n  total  maxdd  ret/dd  sharpe  worst_day  worst_month  neg_months
+book            split                                                                           
+I2v1 (1 NQ)     discovery  NaN  11822  -7456    1.59    0.84      -2948        -3792           9
+                validation NaN    232  -7840    0.03    0.04      -2948        -4167           3
+D1_CONSERVATIVE discovery  NaN  12634  -2866    4.41    1.71       -998        -1285           5
+                validation NaN   6074  -1375    4.42    2.09       -998         -953           1
+D2_BALANCED     discovery  NaN  26772  -3027    8.84    2.15      -1513        -2251           4
+                validation NaN  13989  -1615    8.66    3.16      -1056         -725           1
+D3_EQUAL_RISK   discovery  NaN  47483  -5025    9.45    2.29      -2114        -3724           3
+                validation NaN  21101  -2361    8.94    3.18      -1517         -320           2
+D4_AGGRESSIVE   discovery  NaN  49166  -4857   10.12    2.47      -2064        -3701           4
+                validation NaN  19040  -3310    5.75    2.92      -1801         -631           2
+
+== sleeve contributions / sizes / conflicts ==
+            book sleeve  risk_usd  trades  skipped_or_cut  contracts_min  contracts_med  contracts_max  total  share%
+D1_CONSERVATIVE     A3    1000.0     117               0            0.8            0.8            0.8  18707   100.0
+    D2_BALANCED     A3    1000.0     117               0            0.8            0.8            0.8  18707    45.9
+    D2_BALANCED     ES     500.0      99               0            0.6            0.6            0.6  14150    34.7
+    D2_BALANCED     TE     500.0     118               0            0.1            0.2            0.3   7903    19.4
+  D3_EQUAL_RISK     A3    1000.0     115               3            0.1            0.8            0.8  19178    28.0
+  D3_EQUAL_RISK     ES    1000.0      99               3            0.2            1.3            1.3  28369    41.4
+  D3_EQUAL_RISK     TE    1000.0     120               2            0.1            0.4            0.6  21037    30.7
+  D4_AGGRESSIVE     ES    1000.0      99               2            0.2            1.3            1.3  31859    46.7
+  D4_AGGRESSIVE   ORBT    1000.0     195               0            0.1            0.1            0.3  17236    25.3
+  D4_AGGRESSIVE     TE    1000.0     121               6            0.1            0.4            0.6  19111    28.0
+
+== weight perturbation: one-at-a-time and global ==
+            book   kind                      mult  total  maxdd  ret/dd  sharpe  worst_day  worst_month  beats_I2_all
+D1_CONSERVATIVE    1at                    A3x0.5   9354  -1433    6.53    1.82       -499         -642         False
+D1_CONSERVATIVE    1at                    A3x1.5  28061  -4300    6.53    1.82      -1498        -1927          True
+D1_CONSERVATIVE global                    A3x0.5   9354  -1433    6.53    1.82       -499         -642         False
+D1_CONSERVATIVE global                   A3x0.75  14030  -2150    6.53    1.82       -749         -964          True
+D1_CONSERVATIVE global                   A3x1.25  23384  -3583    6.53    1.82      -1248        -1606          True
+D1_CONSERVATIVE global                    A3x1.5  28061  -4300    6.53    1.82      -1498        -1927          True
+    D2_BALANCED    1at      A3x0.5 TEx1.0 ESx1.0  31407  -2329   13.49    2.40      -1014        -1628          True
+    D2_BALANCED    1at      A3x1.5 TEx1.0 ESx1.0  49696  -3955   12.57    2.38      -2012        -2894          True
+    D2_BALANCED    1at      A3x1.0 TEx0.5 ESx1.0  35490  -2699   13.15    2.29      -1513        -2231          True
+    D2_BALANCED    1at      A3x1.0 TEx1.5 ESx1.0  48868  -3609   13.54    2.52      -1513        -2271          True
+    D2_BALANCED    1at      A3x1.0 TEx1.0 ESx0.5  33685  -2714   12.41    2.34      -1256        -1841          True
+    D2_BALANCED    1at      A3x1.0 TEx1.0 ESx1.5  50239  -3611   13.91    2.42      -1856        -2799          True
+    D2_BALANCED global      A3x0.5 TEx0.5 ESx0.5  19062  -1350   14.12    2.31       -757        -1178          True
+    D2_BALANCED global   A3x0.75 TEx0.75 ESx0.75  31326  -2364   13.25    2.44      -1178        -1668          True
+    D2_BALANCED global   A3x1.25 TEx1.25 ESx1.25  53597  -3711   14.44    2.54      -1934        -2515          True
+    D2_BALANCED global      A3x1.5 TEx1.5 ESx1.5  62648  -4680   13.39    2.54      -2356        -3288          True
+  D3_EQUAL_RISK    1at      A3x0.5 TEx1.0 ESx1.0  60271  -5013   12.02    2.41      -1923        -4055          True
+  D3_EQUAL_RISK    1at      A3x1.5 TEx1.0 ESx1.0  71560  -5404   13.24    2.55      -2613        -3921          True
+  D3_EQUAL_RISK    1at      A3x1.0 TEx0.5 ESx1.0  56751  -4050   14.01    2.39      -2114        -3209          True
+  D3_EQUAL_RISK    1at      A3x1.0 TEx1.5 ESx1.0  79411  -6626   11.99    2.50      -2114        -4570         False
+  D3_EQUAL_RISK    1at      A3x1.0 TEx1.0 ESx0.5  53296  -4791   11.12    2.44      -1535        -2858          True
+  D3_EQUAL_RISK    1at      A3x1.0 TEx1.0 ESx1.5  75027  -5556   13.50    2.42      -2714        -4589         False
+  D3_EQUAL_RISK global      A3x0.5 TEx0.5 ESx0.5  31407  -2329   13.49    2.40      -1014        -1628          True
+  D3_EQUAL_RISK global   A3x0.75 TEx0.75 ESx0.75  53259  -3694   14.42    2.51      -1607        -2748          True
+  D3_EQUAL_RISK global   A3x1.25 TEx1.25 ESx1.25  78308  -5503   14.23    2.54      -2621        -4596         False
+  D3_EQUAL_RISK global      A3x1.5 TEx1.5 ESx1.5  89741  -6490   13.83    2.51      -3214        -5336         False
+  D4_AGGRESSIVE    1at    ORBTx0.5 TEx1.0 ESx1.0  56675  -4560   12.43    2.36      -2064        -4340         False
+  D4_AGGRESSIVE    1at    ORBTx1.5 TEx1.0 ESx1.0  76177  -5245   14.52    2.71      -2390        -3182          True
+  D4_AGGRESSIVE    1at    ORBTx1.0 TEx0.5 ESx1.0  56201  -4578   12.28    2.48      -2000        -2668          True
+  D4_AGGRESSIVE    1at    ORBTx1.0 TEx1.5 ESx1.0  78389  -6686   11.72    2.53      -2259        -4518         False
+  D4_AGGRESSIVE    1at    ORBTx1.0 TEx1.0 ESx0.5  52580  -5067   10.38    2.51      -1801        -2836          True
+  D4_AGGRESSIVE    1at    ORBTx1.0 TEx1.0 ESx1.5  78607  -5859   13.42    2.57      -2150        -4418         False
+  D4_AGGRESSIVE global    ORBTx0.5 TEx0.5 ESx0.5  26876  -2116   12.70    2.33      -1064        -1800          True
+  D4_AGGRESSIVE global ORBTx0.75 TEx0.75 ESx0.75  52295  -3366   15.54    2.59      -1621        -2689          True
+  D4_AGGRESSIVE global ORBTx1.25 TEx1.25 ESx1.25  82942  -5620   14.76    2.68      -2325        -3998          True
+  D4_AGGRESSIVE global    ORBTx1.5 TEx1.5 ESx1.5  95350  -6784   14.06    2.68      -2849        -4056          True
+
+== weight grid {0.75,1,1.25}^k per sleeve ==
+                   n  total_min  total_med  total_max  dd_min  dd_med  sharpe_min  sharpe_med  sharpe_max  wm_min  beats_all
+book                                                                                                                       
+D1_CONSERVATIVE   3      14030    18707.0      23384   -3583 -2866.0        1.82        1.82        1.82   -1606          3
+D2_BALANCED      27      31326    42775.0      53597   -3711 -3027.0        2.36        2.43        2.56   -2846         27
+D3_EQUAL_RISK    27      53259    67854.0      78308   -6311 -5025.0        2.43        2.51        2.57   -4596         22
+D4_AGGRESSIVE    27      52295    69020.0      82942   -6388 -5060.0        2.48        2.60        2.72   -4321         25
+
+== stress / ablations ==
+            book                      test   n  total  maxdd  ret/dd  sharpe  worst_day  worst_month
+D1_CONSERVATIVE                 as frozen 117  18707  -2866    6.53    1.82       -998        -1285
+D1_CONSERVATIVE                   cost x2 117  14214  -3097    4.59    1.39      -1037        -1554
+D1_CONSERVATIVE        +2 ticks slip/side 117  17771  -2914    6.10    1.73      -1006        -1341
+D1_CONSERVATIVE         no conflict rules 117  18707  -2866    6.53    1.82       -998        -1285
+D1_CONSERVATIVE A3 -> I2v1 exits (same R) 117   3616  -2467    1.47    0.61       -884        -1250
+D1_CONSERVATIVE drop best month (2024-04) 111  14738  -2866    5.14    1.47       -998        -1285
+D1_CONSERVATIVE        drop best 5 trades 112  10883  -2875    3.79    1.21       -998        -1285
+    D2_BALANCED                 as frozen 334  40760  -3027   13.46    2.42      -1513        -2251
+    D2_BALANCED                   cost x2 334  28926  -3670    7.88    1.75      -1616        -3002
+    D2_BALANCED        +2 ticks slip/side 334  38146  -3170   12.03    2.27      -1536        -2418
+    D2_BALANCED         no conflict rules 334  40760  -3027   13.46    2.42      -1513        -2251
+    D2_BALANCED               drop ES leg 235  26610  -3665    7.26    2.09      -1329        -1785
+    D2_BALANCED     ES leg flat in 2025H2 311  33626  -3142   10.70    2.09      -1513        -2251
+    D2_BALANCED               drop TE leg 216  32857  -2699   12.17    2.19      -1513        -2106
+    D2_BALANCED A3 -> I2v1 exits (same R) 334  25669  -2283   11.24    1.94      -1399        -1624
+    D2_BALANCED drop best month (2024-04) 311  30880  -3027   10.20    1.95      -1513        -2251
+    D2_BALANCED        drop best 5 trades 329  32007  -3027   10.57    2.07      -1513        -2251
+  D3_EQUAL_RISK                 as frozen 334  68584  -5025   13.65    2.51      -2114        -3724
+  D3_EQUAL_RISK                   cost x2 334  48510  -8664    5.60    1.80      -2293        -4568
+  D3_EQUAL_RISK        +2 ticks slip/side 334  64088  -5417   11.83    2.35      -2154        -3904
+  D3_EQUAL_RISK         no conflict rules 338  70241  -5025   13.98    2.50      -2114        -3724
+  D3_EQUAL_RISK               drop ES leg 239  39584  -6437    6.15    2.09      -1991        -2618
+  D3_EQUAL_RISK     ES leg flat in 2025H2 311  54277  -6230    8.71    2.07      -2114        -3724
+  D3_EQUAL_RISK               drop TE leg 216  49365  -4148   11.90    2.16      -2114        -3064
+  D3_EQUAL_RISK A3 -> I2v1 exits (same R) 332  56027  -5205   10.76    2.25      -2000        -3665
+  D3_EQUAL_RISK drop best month (2024-04) 312  51104  -5025   10.17    2.02      -2114        -3724
+  D3_EQUAL_RISK        drop best 5 trades 329  54418  -5025   10.83    2.09      -2114        -3724
+  D4_AGGRESSIVE                 as frozen 415  68206  -4857   14.04    2.59      -2064        -3701
+  D4_AGGRESSIVE                   cost x2 415  50507  -5740    8.80    1.95      -2224        -4367
+  D4_AGGRESSIVE        +2 ticks slip/side 415  64200  -5054   12.70    2.45      -2100        -3850
+  D4_AGGRESSIVE         no conflict rules 416  68770  -4857   14.16    2.56      -2264        -3701
+  D4_AGGRESSIVE               drop ES leg 317  38113  -5868    6.50    2.08      -1801        -2715
+  D4_AGGRESSIVE     ES leg flat in 2025H2 392  52490  -6219    8.44    2.07      -2064        -3701
+  D4_AGGRESSIVE               drop TE leg 294  47894  -5483    8.73    2.26      -2000        -1979
+  D4_AGGRESSIVE drop best month (2024-04) 388  52477  -4857   10.80    2.16      -2064        -3701
+  D4_AGGRESSIVE        drop best 5 trades 410  54135  -5525    9.80    2.23      -2064        -3701
+
+== 1-year (252 d) block-bootstrap maxDD ==
+            book  block_days  DD50   DD95   DD99  P(DD<-8224)  P(DD<-5000)
+    I2v1 (1 NQ)           1 -8258 -17658 -23443        0.504        0.867
+    I2v1 (1 NQ)           5 -8167 -17245 -23132        0.493        0.871
+    I2v1 (1 NQ)          20 -7351 -14640 -18651        0.392        0.827
+D1_CONSERVATIVE           1 -2848  -5625  -7432        0.005        0.091
+D1_CONSERVATIVE           5 -2478  -4755  -6274        0.001        0.037
+D1_CONSERVATIVE          20 -2354  -4086  -5139        0.000        0.012
+    D2_BALANCED           1 -3465  -6627  -8836        0.015        0.175
+    D2_BALANCED           5 -3173  -5882  -7578        0.006        0.108
+    D2_BALANCED          20 -2928  -4889  -6231        0.001        0.044
+  D3_EQUAL_RISK           1 -5464 -10119 -13216        0.139        0.598
+  D3_EQUAL_RISK           5 -5039  -9149 -11878        0.088        0.509
+  D3_EQUAL_RISK          20 -4968  -8902 -11350        0.079        0.487
+  D4_AGGRESSIVE           1 -5425  -9996 -12942        0.130        0.596
+  D4_AGGRESSIVE           5 -4980  -8983 -11834        0.080        0.495
+  D4_AGGRESSIVE          20 -4814  -8379 -10828        0.057        0.451
+
+== 1-year P&L (iid bootstrap) ==
+            book  1y_P5  1y_P50  P(1y<0)
+    I2v1 (1 NQ) -10632    6024    0.268
+D1_CONSERVATIVE    809    9274    0.038
+    D2_BALANCED   7156   20070    0.004
+  D3_EQUAL_RISK  12190   33864    0.005
+  D4_AGGRESSIVE  12621   33719    0.003
+
+== monthly ==
+          I2v1 (1 NQ)  D1_CONSERVATIVE  D2_BALANCED  D3_EQUAL_RISK  D4_AGGRESSIVE
+2024-01         -2.0           1474.0       1621.0         1913.0          -48.0
+2024-02       -643.0           -394.0      -1825.0        -3724.0        -3701.0
+2024-03       -669.0              9.0        721.0         1618.0         1759.0
+2024-04       1387.0           3970.0       9880.0        17480.0        15729.0
+2024-05      -1705.0             48.0        405.0         1807.0          182.0
+2024-06       -982.0             46.0       1318.0         2887.0         3457.0
+2024-07       2260.0           1184.0       3893.0         6802.0         4408.0
+2024-08       -844.0           1157.0       1703.0         2688.0         3032.0
+2024-09       1369.0          -1285.0      -2251.0        -3250.0         -571.0
+2024-10       4230.0           2096.0       1553.0         1163.0         1163.0
+2024-11       -402.0           1106.0       1138.0         1086.0         1136.0
+2024-12       2148.0           1170.0       2480.0         2268.0         4130.0
+2025-01       3156.0           1113.0       -959.0        -3499.0        -3447.0
+2025-02       1835.0           1616.0       3763.0         6296.0         5722.0
+2025-03       2104.0            -29.0        640.0         1655.0         3096.0
+2025-04      -3792.0            850.0       2720.0         9059.0         8804.0
+2025-05       3979.0           -781.0        189.0          933.0         4178.0
+2025-06      -1607.0           -718.0       -218.0          298.0          138.0
+2025-07       -845.0           1852.0       1685.0         1110.0         -456.0
+2025-08        714.0           -953.0       -725.0         -320.0         1167.0
+2025-09      -2319.0            537.0        333.0         -193.0         -631.0
+2025-10      -4167.0           1178.0       4071.0         7086.0         6344.0
+2025-11       3156.0           2305.0       4726.0         5893.0         5353.0
+2025-12       3693.0           1154.0       3898.0         7524.0         7261.0
