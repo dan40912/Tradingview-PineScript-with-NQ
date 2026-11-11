@@ -1,5 +1,5 @@
 """逐分鐘照 Pine v14 寫法重跑「亞洲多 ES」，和 f_family.py 的「亞洲多＋ES同步」逐筆比對。"""
-# 需要 claude/dazzling-euler-endxzx 分支的 research/lib；放到該分支 research/ 下執行（見 docs/21 第 9 節）。
+# 需要 claude/dazzling-euler-endxzx 分支的 research/lib；放到該分支 research/ 下執行（見 docs/21 第 10 節）。
 import pandas as pd, numpy as np
 def load(sym):
     df = pd.read_csv(f'../data/{sym}_1m_continuous_20240102-20261110.csv.gz', usecols=['timestamp_utc','open','high','low','close','trade_date'])

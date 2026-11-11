@@ -1,5 +1,5 @@
 """事先登記的規則家族（research/multi_entry/PREREG.md）：各時段「掃過價位後收回 → 反向」。
-# 需要 claude/dazzling-euler-endxzx 分支的 research/lib；放到該分支 research/ 下執行（見 docs/21 第 7 節）。
+# 需要 claude/dazzling-euler-endxzx 分支的 research/lib；放到該分支 research/ 下執行（見 docs/21 第 10 節）。
 +55／−145，每筆扣成本，k 根 5 分K 收回才進場。輸出每條規則每個切分的統計。研究用途，不是投資建議。"""
 import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np, pandas as pd

@@ -1,5 +1,5 @@
 """逐分鐘照 Pine v13 亞洲盤參考點的寫法重跑，和 family.py 的 ASIA-PD-k1 逐筆比對。"""
-# 需要 claude/dazzling-euler-endxzx 分支的 research/lib；放到該分支 research/ 下執行（見 docs/21 第 7 節）。
+# 需要 claude/dazzling-euler-endxzx 分支的 research/lib；放到該分支 research/ 下執行（見 docs/21 第 10 節）。
 import pandas as pd, numpy as np
 df = pd.read_csv('../data/NQ_1m_continuous_20240102-20261110.csv.gz', usecols=['timestamp_utc','open','high','low','close','trade_date'])
 t = pd.to_datetime(df.timestamp_utc, utc=True).dt.tz_convert('America/New_York')

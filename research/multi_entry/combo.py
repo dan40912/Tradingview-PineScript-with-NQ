@@ -1,5 +1,5 @@
 """組合：I2＋通過或待驗證的參考點，MNQ 計價、每日停損、DCA 比較。研究用途，不是投資建議。"""
-# 需要 claude/dazzling-euler-endxzx 分支的 research/lib；放到該分支 research/ 下執行（見 docs/21 第 7 節）。
+# 需要 claude/dazzling-euler-endxzx 分支的 research/lib；放到該分支 research/ 下執行（見 docs/21 第 10 節）。
 import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np, pandas as pd
 from lib import data, features, strategies

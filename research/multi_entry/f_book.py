@@ -1,5 +1,5 @@
 """第三批的組合：I2＋通過的點，每筆 5 口 MNQ（0.5 口 NQ），每日停損 −$2,900。研究用途，不是投資建議。"""
-# 需要 claude/dazzling-euler-endxzx 分支的 research/lib；放到該分支 research/ 下執行（見 docs/21 第 9 節）。
+# 需要 claude/dazzling-euler-endxzx 分支的 research/lib；放到該分支 research/ 下執行（見 docs/21 第 10 節）。
 import sys, os; HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 import numpy as np, pandas as pd
 import f_family as FF

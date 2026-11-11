@@ -1,5 +1,5 @@
 """第三批（PREREG 第三批）：前高空／前低多／亞洲空／亞洲多 × ES 同步（F1）、順著 I2（F2）。研究用途，不是投資建議。"""
-# 需要 claude/dazzling-euler-endxzx 分支的 research/lib；放到該分支 research/ 下執行（見 docs/21 第 9 節）。
+# 需要 claude/dazzling-euler-endxzx 分支的 research/lib；放到該分支 research/ 下執行（見 docs/21 第 10 節）。
 import sys, os, importlib.util; HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 import numpy as np, pandas as pd
 from lib import sim
