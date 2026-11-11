@@ -4,7 +4,7 @@
 // 圖表可以用 1／5／15 分K；指標內部一律用 1 分K 資料逐分鐘計算（request.security_lower_tf），結果和 1 分K 版相同。
 // v11：超過 15 分K（例如日線）不畫標籤和方框；只保留最近幾個交易日的標籤；方向標籤縮成一行、不做的日子不畫。
 // v12：沒有訊號時一律灰色，寫「等回區才多／空」並顯示離價值區幾點；只有訊號成立或持倉中才用綠／紅色。
-// v13：新增亞洲盤參考點（美東 18:05～02:00 進場、02:59 出場，台灣冬令 07:05～15:59）：掃過前一日盤中高／低後 5 分K 收回 → 反向。只顯示，不是規則。
+// v13：新增亞洲盤參考點（美東 18:05～02:00 進場、02:59 出場；台灣在美國冬令時 07:05～15:59、夏令時 06:05～14:59）：掃過前一日盤中高／低後 5 分K 收回 → 反向。只顯示，不是規則。
 // v15：「進場點模式」：計畫內的點用彩色標籤，資訊表顯示今天筆數、已實現損益和每日停損 −$3,000。
 // v16：模式改成三種（docs/21 第 9 節，450 種組合裡四段都賺的 158 種）：推薦（勝率 ≥70% 裡獲利最高：I2＋前高空＋前低多順 I2＋亞洲多 ES）、總獲利最高（再加亞洲空）、勝率最高（只有亞洲多 ES）。前低多只在「只找多」或開在區內的日子算計畫內。
 // v14：亞洲多加上 ES 同步確認（ES 也掃過自己的前日低點並收回，不晚於 NQ 那根 5 分K）；這個版本通過事先登記的篩選，標籤改成青綠色「亞洲多 ES」。
@@ -601,7 +601,7 @@ if n1 > 0
                     array.set(asInP, r, pin)
                     if pin
                         planN += 1
-                    txt = "參考（亞洲盤）：" + asName(r) + " " + fmt(o1) + "\n止盈 " + fmt(o1 + sd * TP1) + "／止損 " + fmt(o1 - sd * SL) + "\n美東 02:59（台灣冬令 15:59）未結束就出場\n" + asHist(r) + planNote(asInPlan(r), pin)
+                    txt = "參考（亞洲盤）：" + asName(r) + " " + fmt(o1) + "\n止盈 " + fmt(o1 + sd * TP1) + "／止損 " + fmt(o1 - sd * SL) + "\n美東 02:59（台灣 " + twAt(year(t1, TZ), month(t1, TZ), dayofmonth(t1, TZ), 2, 59) + "）未結束就出場\n" + asHist(r) + planNote(asInPlan(r), pin)
                     array.set(asTxt, r, txt)
                     if tfOk
                         array.set(asLbl, r, regL(label.new(bar_index, sd == 1 ? l1 : h1, asName(r), color=array.get(asInP, r) ? asCol(r) : color.new(color.gray, 25), textcolor=color.white,
