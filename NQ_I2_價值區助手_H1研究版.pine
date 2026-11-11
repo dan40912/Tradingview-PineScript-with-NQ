@@ -4,6 +4,7 @@
 // 圖表可以用 1／5／15 分K；指標內部一律用 1 分K 資料逐分鐘計算（request.security_lower_tf），結果和 1 分K 版相同。
 // v11：超過 15 分K（例如日線）不畫標籤和方框；只保留最近幾個交易日的標籤；方向標籤縮成一行、不做的日子不畫。
 // v12：沒有訊號時一律灰色，寫「等回區才多／空」並顯示離價值區幾點；只有訊號成立或持倉中才用綠／紅色。
+// v13：新增亞洲盤參考點（美東 18:05～02:00 進場、02:59 出場，台灣冬令 07:05～15:59）：掃過前一日盤中高／低後 5 分K 收回 → 反向。只顯示，不是規則。
 // 使用方式：NQ 單一合約（例如 NQZ2026），建議開「延長交易時段」。換月當天不要用（凍結規則當天不做 I2）。
 indicator("NQ I2 價值區助手（H1 研究版）", shorttitle="I2 VA H1", overlay=true, max_labels_count=500, max_boxes_count=500)
 
@@ -28,6 +29,7 @@ showLvLbl = input.bool(true, "價位線右側標示名稱與價格")
 keepDays  = input.int(3, "圖上標籤保留最近幾個交易日", minval=1, maxval=30)
 refMode   = input.string("只顯示歷史為正", "參考點（不是規則）", options=["只顯示歷史為正", "全部", "關閉"], group="參考點")
 refAlert  = input.bool(false, "參考點也發警報", group="參考點")
+asiaOn    = input.bool(true, "亞洲盤參考點（台灣早上；需要開延長交易時段）", group="參考點")
 showRef   = refMode != "關閉"
 refOn(r) => refMode == "全部" or r <= 1   // 區邊回歸（r2、r3）歷史每筆為負，預設不顯示
 
@@ -153,6 +155,24 @@ refShort(r) => r == 0 ? "前高空" : r == 1 ? "前低多" : r == 2 ? "區邊空
 refHist(r, outDay) => r == 0 ? (outDay ? "歷史：開在區外的日子每筆 +$74（154 筆；+167｜+59｜−19）" : "歷史：開在區內的日子每筆 +$186（72 筆；+60｜+261｜+261）") :
                       r == 1 ? "歷史：每筆 +$134（169 筆；+197｜+202｜−3）" :
                       r == 2 ? "歷史：每筆 −$58（57 筆；+175｜+51｜−585）" : "歷史：每筆 −$299（54 筆；−143｜−546｜−138）"
+
+// 亞洲盤參考點（只顯示，不是規則）：0 亞洲空（掃前日高後收回）、1 亞洲多（掃前日低後收回）；每晚各最多一次
+var float asHi  = na          // 美東 18:00 起的最高／最低
+var float asLo  = na
+var int   asDay = 0           // 已經在哪一天的 18:00 重置過
+var array<int>    asSt   = array.new<int>(2, 0)      // 0 無、1 等進場、2 持倉中、3 已結束
+var array<int>    asSigT = array.new<int>(2, 0)      // 訊號那根 1 分K 的時間
+var array<float>  asE    = array.new<float>(2, na)
+var array<label>  asLbl  = array.new<label>(2, na)
+var array<string> asTxt  = array.new<string>(2, "")
+var array<box>    asTp   = array.new<box>(2, na)
+var array<box>    asSlB  = array.new<box>(2, na)
+var int    asCount = 0
+var string asLast  = "—"
+asName(r) => r == 0 ? "亞洲空" : "亞洲多"
+// 歷史（NQ、+55／−145、扣 $48；docs/21）：探索 2024-01～2025-06｜驗證 2025 下半年｜測試 2026-01～10/19｜前進 10/20～11/10
+asHist(r) => r == 0 ? "歷史每筆：−$82（72 筆）｜+$20（33）｜+$350（56）｜+$549（5）\n探索期為負，事先登記的篩選沒有通過" :
+                      "歷史每筆：+$385（63 筆）｜−$512（18）｜+$185（56）｜+$485（8）\n2025 下半年為負，事先登記的篩選沒有通過"
 
 brk = false
 n1 = array.size(aT)
@@ -467,6 +487,70 @@ if n1 > 0
                             label.set_tooltip(array.get(refLbl, r), array.get(refTxt, r) + "\n→ " + out)
                         refLast := refShort(r) + " → " + out
 
+        // ---------- 亞洲盤參考點（美東 18:00～02:59）：掃過前一日盤中高／低後，5 分K 收回 → 反向；+55／−145、02:59 出場 ----------
+        inAsia = m1 >= 1080 or m1 <= 179
+        if asiaOn and closed1 and m1 >= 1080 and asDay != d1
+            asDay := d1
+            asHi := h1
+            asLo := l1
+            for r = 0 to 1
+                array.set(asSt, r, 0)
+            asCount := 0
+            asLast := "—"
+        else if asiaOn and closed1 and inAsia and not na(asHi)
+            asHi := math.max(asHi, h1)
+            asLo := math.min(asLo, l1)
+        if asiaOn and not na(asHi)
+            for r = 0 to 1
+                sd = r == 0 ? -1 : 1
+                s = array.get(asSt, r)
+                // 訊號後的下一根 1 分K 開盤進場
+                if s == 1 and t1 > array.get(asSigT, r)
+                    array.set(asE, r, o1)
+                    array.set(asSt, r, 2)
+                    s := 2
+                    asCount += 1
+                    txt = "參考（亞洲盤）：" + asName(r) + " " + fmt(o1) + "\n止盈 " + fmt(o1 + sd * TP1) + "／止損 " + fmt(o1 - sd * SL) + "\n美東 02:59（台灣冬令 15:59）未結束就出場\n" + asHist(r)
+                    array.set(asTxt, r, txt)
+                    if tfOk
+                        array.set(asLbl, r, regL(label.new(bar_index, sd == 1 ? l1 : h1, asName(r), color=color.new(color.gray, 25), textcolor=color.white,
+                                  style=sd == 1 ? label.style_label_up : label.style_label_down, size=size.tiny, tooltip=txt), d1))
+                        array.set(asTp, r, regB(box.new(bar_index, math.max(o1, o1 + sd * TP1), bar_index, math.min(o1, o1 + sd * TP1),
+                                  border_color=color.new(color.green, 60), bgcolor=color.new(color.green, 85)), d1))
+                        array.set(asSlB, r, regB(box.new(bar_index, math.max(o1, o1 - sd * SL), bar_index, math.min(o1, o1 - sd * SL),
+                                  border_color=color.new(color.red, 70), bgcolor=color.new(color.red, 90)), d1))
+                    asLast := asName(r) + " " + fmt(o1) + " 持倉中"
+                    if refAlert
+                        alert("NQ 亞洲盤參考點（不是規則）：" + asName(r) + " " + fmt(o1) + "｜止盈 " + fmt(o1 + sd * TP1) + "／止損 " + fmt(o1 - sd * SL), alert.freq_all)
+                // 持倉中：進場那一分鐘也檢查（和回測一樣）；同一分鐘兩邊都碰到算止損
+                if s == 2
+                    if tfOk
+                        box.set_right(array.get(asTp, r), bar_index)
+                        box.set_right(array.get(asSlB, r), bar_index)
+                    if closed1
+                        e = array.get(asE, r)
+                        out = ""
+                        if (sd == 1 ? l1 <= e - SL : h1 >= e + SL)
+                            out := "止損 −$2,948"
+                        else if (sd == 1 ? h1 >= e + TP1 : l1 <= e - TP1)
+                            out := "止盈 +$1,052"
+                        else if m1 >= 179 and m1 < 1080
+                            out := "時間到 " + str.tostring(sd * (c1 - e) * 20 - 48, "+#,##0;−#,##0")
+                        if out != ""
+                            array.set(asSt, r, 3)
+                            if tfOk
+                                label.set_text(array.get(asLbl, r), asName(r) + (str.startswith(out, "止盈") ? " ✓" : str.startswith(out, "止損") ? " ✗" : " ⏱"))
+                                label.set_tooltip(array.get(asLbl, r), array.get(asTxt, r) + "\n→ " + out)
+                            asLast := asName(r) + " → " + out
+            // 5 分K 收盤（美東 18:04、18:09 … 01:59）找訊號
+            if closed1 and m1 % 5 == 4 and (m1 >= 1084 or m1 <= 119)
+                if not na(pdh) and array.get(asSt, 0) == 0 and asHi > pdh and c1 < pdh
+                    array.set(asSt, 0, 1)
+                    array.set(asSigT, 0, t1)
+                if not na(pdl) and array.get(asSt, 1) == 0 and asLo < pdl and c1 > pdl
+                    array.set(asSt, 1, 1)
+                    array.set(asSigT, 1, t1)
+
         // 查看過去某一天：在那天 16:00 前存下狀態
         if viewOn and d1 == viewYmd and m1 <= 959
             vVAL := pVAL
@@ -536,7 +620,7 @@ bgcolor(isRth and idx >= 28 and idx <= 32 ? color.new(color.gray, 85) : na, titl
 bgcolor(isRth and idx >= 5 and idx <= LAST_V2 ? color.new(color.blue, 95) : isRth and idx > LAST_V2 and idx <= LAST_V1 ? color.new(color.purple, 96) : na, title="進場時段（藍＝v1+v2、紫＝只有 v1）")
 
 tPos = tblPos == "右上" ? position.top_right : tblPos == "左下" ? position.bottom_left : tblPos == "左上" ? position.top_left : position.bottom_right
-var table t = table.new(tPos, 2, 18, bgcolor=color.new(color.black, 20), border_width=1)
+var table t = table.new(tPos, 2, 19, bgcolor=color.new(color.black, 20), border_width=1)
 
 // 精簡模式：三行白話
 if tblMode == "精簡" and barstate.islast
@@ -583,6 +667,11 @@ if tblMode == "精簡" and barstate.islast
     if not tfOk
         table.cell(t, 0, 5, "注意", text_color=color.white, bgcolor=color.new(color.red, 0), text_size=size.normal)
         table.cell(t, 1, 5, "這個週期不畫標籤：請改用 1～15 分K", text_color=color.white, bgcolor=color.new(color.red, 0), text_size=size.normal)
+    if asiaOn and not viewOn
+        table.cell(t, 0, 6, "亞洲盤", text_color=color.white, text_size=size.small)
+        table.cell(t, 1, 6, (asCount == 0 ? "還沒有" : str.tostring(asCount) + " 個｜" + asLast) + "｜進場台灣 " + twAt(y0, mo0, d0, 18, 5) + "～" + twAt(y0, mo0, d0, 2, 0),
+                   text_color=color.silver, text_size=size.small,
+                   tooltip="亞洲盤參考點，不是規則：美東 18:00 後價格超過前一日盤中高（低），5 分K 又收回來 → 反向，+55／−145，美東 02:59 出場。\n事先登記的篩選沒有通過（2025 下半年為負），只用來紙上記錄。")
 
 // 完整模式
 if tblMode == "完整" and barstate.islast
@@ -652,4 +741,9 @@ if tblMode == "完整" and barstate.islast
         table.cell(t, 0, 17, "參考點", text_color=color.silver, text_size=size.small)
         table.cell(t, 1, 17, (viewOn ? "看圖上灰色標籤" : refCount == 0 ? "今天還沒有" : str.tostring(refCount) + " 個｜最近：" + refLast) +
                    "｜前高假突破空、前低假突破多、區邊回歸（只在開在區內的日子）；+55／−145、12:29 出場；不是規則，歷史表現寫在標籤上",
+                   text_color=color.white, bgcolor=color.new(color.gray, 60), text_size=size.small)
+    if asiaOn
+        table.cell(t, 0, 18, "亞洲盤", text_color=color.silver, text_size=size.small)
+        table.cell(t, 1, 18, (viewOn ? "看圖上灰色標籤" : asCount == 0 ? "還沒有" : str.tostring(asCount) + " 個｜最近：" + asLast) +
+                   "｜美東 18:05～02:00 進場、02:59 出場；掃過前日高／低後 5 分K 收回 → 反向；+55／−145；沒通過事先登記的篩選，只紙上記錄",
                    text_color=color.white, bgcolor=color.new(color.gray, 60), text_size=size.small)
