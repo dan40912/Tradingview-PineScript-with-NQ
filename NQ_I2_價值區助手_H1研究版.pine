@@ -5,6 +5,7 @@
 // v11：超過 15 分K（例如日線）不畫標籤和方框；只保留最近幾個交易日的標籤；方向標籤縮成一行、不做的日子不畫。
 // v12：沒有訊號時一律灰色，寫「等回區才多／空」並顯示離價值區幾點；只有訊號成立或持倉中才用綠／紅色。
 // v13：新增亞洲盤參考點（美東 18:05～02:00 進場、02:59 出場，台灣冬令 07:05～15:59）：掃過前一日盤中高／低後 5 分K 收回 → 反向。只顯示，不是規則。
+// v14：亞洲多加上 ES 同步確認（ES 也掃過自己的前日低點並收回，不晚於 NQ 那根 5 分K）；這個版本通過事先登記的篩選，標籤改成青綠色「亞洲多 ES」。
 // 使用方式：NQ 單一合約（例如 NQZ2026），建議開「延長交易時段」。換月當天不要用（凍結規則當天不做 I2）。
 indicator("NQ I2 價值區助手（H1 研究版）", shorttitle="I2 VA H1", overlay=true, max_labels_count=500, max_boxes_count=500)
 
@@ -30,6 +31,8 @@ keepDays  = input.int(3, "圖上標籤保留最近幾個交易日", minval=1, ma
 refMode   = input.string("只顯示歷史為正", "參考點（不是規則）", options=["只顯示歷史為正", "全部", "關閉"], group="參考點")
 refAlert  = input.bool(false, "參考點也發警報", group="參考點")
 asiaOn    = input.bool(true, "亞洲盤參考點（台灣早上；需要開延長交易時段）", group="參考點")
+asiaEs    = input.bool(true, "亞洲多：要 ES 同步確認（通過驗證的版本）", group="參考點")
+esSym     = input.symbol("CME_MINI:ESZ2026", "ES 合約（和 NQ 同月份）", group="參考點")
 showRef   = refMode != "關閉"
 refOn(r) => refMode == "全部" or r <= 1   // 區邊回歸（r2、r3）歷史每筆為負，預設不顯示
 
@@ -169,10 +172,54 @@ var array<box>    asTp   = array.new<box>(2, na)
 var array<box>    asSlB  = array.new<box>(2, na)
 var int    asCount = 0
 var string asLast  = "—"
-asName(r) => r == 0 ? "亞洲空" : "亞洲多"
+asName(r) => r == 0 ? "亞洲空" : asiaEs ? "亞洲多 ES" : "亞洲多"
 // 歷史（NQ、+55／−145、扣 $48；docs/21）：探索 2024-01～2025-06｜驗證 2025 下半年｜測試 2026-01～10/19｜前進 10/20～11/10
 asHist(r) => r == 0 ? "歷史每筆：−$82（72 筆）｜+$20（33）｜+$350（56）｜+$549（5）\n探索期為負，事先登記的篩選沒有通過" :
+              asiaEs ? "歷史每筆（ES 同步）：+$483（32 筆）｜+$273（7）｜+$230（24）｜+$874（3）\n勝率 84%｜71%｜75%｜100%；通過事先登記的篩選" :
                       "歷史每筆：+$385（63 筆）｜−$512（18）｜+$185（56）｜+$485（8）\n2025 下半年為負，事先登記的篩選沒有通過"
+asCol(r) => r == 1 and asiaEs ? color.new(color.teal, 10) : color.new(color.gray, 25)
+
+// ES 同步確認：ES 自己的前一日盤中高／低、美東 18:00 起的最低價、亞洲多訊號
+[eT, eH, eL, eC] = request.security_lower_tf(esSym, "1", [time, high, low, close])
+var float esSesHi = na
+var float esSesLo = na
+var bool  esInRth = false
+var float esPdl   = na
+var float esAsLo  = na
+var int   esDay   = 0
+var int   esSigT  = 0        // ES 亞洲多訊號那根 1 分K 的時間；0＝今晚還沒有
+nE = array.size(eT)
+if nE > 0
+    for j = 0 to nE - 1
+        tE = array.get(eT, j)
+        hE = array.get(eH, j)
+        lE = array.get(eL, j)
+        cE = array.get(eC, j)
+        mE = minOf(tE)
+        dE = ymdOf(tE)
+        okE1 = barstate.isconfirmed or j < nE - 1 or timenow >= tE + 60000
+        rthE = mE >= 570 and mE <= 959
+        if okE1
+            if esInRth and not rthE
+                esPdl := esSesLo
+                esInRth := false
+            if rthE
+                if not esInRth
+                    esSesHi := hE
+                    esSesLo := lE
+                    esInRth := true
+                else
+                    esSesHi := math.max(esSesHi, hE)
+                    esSesLo := math.min(esSesLo, lE)
+            if mE >= 1080 and esDay != dE
+                esDay := dE
+                esAsLo := lE
+                esSigT := 0
+            else if (mE >= 1080 or mE <= 179) and not na(esAsLo)
+                esAsLo := math.min(esAsLo, lE)
+            if mE % 5 == 4 and (mE >= 1084 or mE <= 119) and esSigT == 0 and not na(esPdl) and not na(esAsLo)
+                if esAsLo < esPdl and cE > esPdl
+                    esSigT := tE
 
 brk = false
 n1 = array.size(aT)
@@ -513,7 +560,7 @@ if n1 > 0
                     txt = "參考（亞洲盤）：" + asName(r) + " " + fmt(o1) + "\n止盈 " + fmt(o1 + sd * TP1) + "／止損 " + fmt(o1 - sd * SL) + "\n美東 02:59（台灣冬令 15:59）未結束就出場\n" + asHist(r)
                     array.set(asTxt, r, txt)
                     if tfOk
-                        array.set(asLbl, r, regL(label.new(bar_index, sd == 1 ? l1 : h1, asName(r), color=color.new(color.gray, 25), textcolor=color.white,
+                        array.set(asLbl, r, regL(label.new(bar_index, sd == 1 ? l1 : h1, asName(r), color=asCol(r), textcolor=color.white,
                                   style=sd == 1 ? label.style_label_up : label.style_label_down, size=size.tiny, tooltip=txt), d1))
                         array.set(asTp, r, regB(box.new(bar_index, math.max(o1, o1 + sd * TP1), bar_index, math.min(o1, o1 + sd * TP1),
                                   border_color=color.new(color.green, 60), bgcolor=color.new(color.green, 85)), d1))
@@ -547,9 +594,13 @@ if n1 > 0
                 if not na(pdh) and array.get(asSt, 0) == 0 and asHi > pdh and c1 < pdh
                     array.set(asSt, 0, 1)
                     array.set(asSigT, 0, t1)
+                // NQ 第一次收回時，ES 必須已經（或同一根 5 分K）確認；沒有就今晚不做（和回測定義相同）
+                esOk = not asiaEs or (esSigT > 0 and esSigT <= t1)
                 if not na(pdl) and array.get(asSt, 1) == 0 and asLo < pdl and c1 > pdl
-                    array.set(asSt, 1, 1)
+                    array.set(asSt, 1, esOk ? 1 : 3)
                     array.set(asSigT, 1, t1)
+                    if not esOk
+                        asLast := "亞洲多：ES 沒有同步，今晚不做"
 
         // 查看過去某一天：在那天 16:00 前存下狀態
         if viewOn and d1 == viewYmd and m1 <= 959
@@ -671,7 +722,7 @@ if tblMode == "精簡" and barstate.islast
         table.cell(t, 0, 6, "亞洲盤", text_color=color.white, text_size=size.small)
         table.cell(t, 1, 6, (asCount == 0 ? "還沒有" : str.tostring(asCount) + " 個｜" + asLast) + "｜進場台灣 " + twAt(y0, mo0, d0, 18, 5) + "～" + twAt(y0, mo0, d0, 2, 0),
                    text_color=color.silver, text_size=size.small,
-                   tooltip="亞洲盤參考點，不是規則：美東 18:00 後價格超過前一日盤中高（低），5 分K 又收回來 → 反向，+55／−145，美東 02:59 出場。\n事先登記的篩選沒有通過（2025 下半年為負），只用來紙上記錄。")
+                   tooltip="亞洲盤參考點：美東 18:00 後價格超過前一日盤中高（低），5 分K 又收回來 → 反向，+55／−145，美東 02:59 出場。\n亞洲多 ES（青綠色）：ES 也同時掃過自己的前日低點並收回，通過事先登記的篩選（docs/21）。\n亞洲空（灰色）：沒通過，只紙上記錄。")
 
 // 完整模式
 if tblMode == "完整" and barstate.islast
@@ -745,5 +796,5 @@ if tblMode == "完整" and barstate.islast
     if asiaOn
         table.cell(t, 0, 18, "亞洲盤", text_color=color.silver, text_size=size.small)
         table.cell(t, 1, 18, (viewOn ? "看圖上灰色標籤" : asCount == 0 ? "還沒有" : str.tostring(asCount) + " 個｜最近：" + asLast) +
-                   "｜美東 18:05～02:00 進場、02:59 出場；掃過前日高／低後 5 分K 收回 → 反向；+55／−145；沒通過事先登記的篩選，只紙上記錄",
+                   "｜美東 18:05～02:00 進場、02:59 出場；掃過前日高／低後 5 分K 收回 → 反向；+55／−145；亞洲多 ES（ES 同步）通過篩選，亞洲空只紙上記錄",
                    text_color=color.white, bgcolor=color.new(color.gray, 60), text_size=size.small)
