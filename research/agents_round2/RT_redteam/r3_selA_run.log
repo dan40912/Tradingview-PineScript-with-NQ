@@ -1,0 +1,33 @@
+/tmp/claude-0/-home-user-Tradingview-PineScript-with-NQ/15bba16f-f33f-5548-9c6a-1eb415eb2457/scratchpad/agents/A_trend/tlib.py:76: RuntimeWarning: All-NaN slice encountered
+  rng = np.nanmax(self.H, 1) - np.nanmin(self.L, 1)
+/tmp/claude-0/-home-user-Tradingview-PineScript-with-NQ/15bba16f-f33f-5548-9c6a-1eb415eb2457/scratchpad/agents/A_trend/tlib.py:76: RuntimeWarning: All-NaN slice encountered
+  rng = np.nanmax(self.H, 1) - np.nanmin(self.L, 1)
+/tmp/claude-0/-home-user-Tradingview-PineScript-with-NQ/15bba16f-f33f-5548-9c6a-1eb415eb2457/scratchpad/agents/A_trend/tlib.py:76: RuntimeWarning: All-NaN slice encountered
+  rng = np.nanmax(self.H, 1) - np.nanmin(self.L, 1)
+/tmp/claude-0/-home-user-Tradingview-PineScript-with-NQ/15bba16f-f33f-5548-9c6a-1eb415eb2457/scratchpad/agents/A_trend/tlib.py:76: RuntimeWarning: All-NaN slice encountered
+  rng = np.nanmax(self.H, 1) - np.nanmin(self.L, 1)
+/tmp/claude-0/-home-user-Tradingview-PineScript-with-NQ/15bba16f-f33f-5548-9c6a-1eb415eb2457/scratchpad/agents/A_trend/tlib.py:108: RuntimeWarning: All-NaN slice encountered
+  r = np.nanmax(self.H[:, :N], 1) - np.nanmin(self.L[:, :N], 1)
+/tmp/claude-0/-home-user-Tradingview-PineScript-with-NQ/15bba16f-f33f-5548-9c6a-1eb415eb2457/scratchpad/agents/A_trend/tlib.py:108: RuntimeWarning: All-NaN slice encountered
+  r = np.nanmax(self.H[:, :N], 1) - np.nanmin(self.L[:, :N], 1)
+/tmp/claude-0/-home-user-Tradingview-PineScript-with-NQ/15bba16f-f33f-5548-9c6a-1eb415eb2457/scratchpad/agents/A_trend/tlib.py:108: RuntimeWarning: All-NaN slice encountered
+  r = np.nanmax(self.H[:, :N], 1) - np.nanmin(self.L[:, :N], 1)
+/tmp/claude-0/-home-user-Tradingview-PineScript-with-NQ/15bba16f-f33f-5548-9c6a-1eb415eb2457/scratchpad/agents/A_trend/tlib.py:108: RuntimeWarning: All-NaN slice encountered
+  r = np.nanmax(self.H[:, :N], 1) - np.nanmin(self.L[:, :N], 1)
+/tmp/claude-0/-home-user-Tradingview-PineScript-with-NQ/15bba16f-f33f-5548-9c6a-1eb415eb2457/scratchpad/agents/A_trend/tlib.py:108: RuntimeWarning: All-NaN slice encountered
+  r = np.nanmax(self.H[:, :N], 1) - np.nanmin(self.L[:, :N], 1)
+/tmp/claude-0/-home-user-Tradingview-PineScript-with-NQ/15bba16f-f33f-5548-9c6a-1eb415eb2457/scratchpad/agents/A_trend/tlib.py:108: RuntimeWarning: All-NaN slice encountered
+  r = np.nanmax(self.H[:, :N], 1) - np.nanmin(self.L[:, :N], 1)
+/tmp/claude-0/-home-user-Tradingview-PineScript-with-NQ/15bba16f-f33f-5548-9c6a-1eb415eb2457/scratchpad/agents/A_trend/tlib.py:108: RuntimeWarning: All-NaN slice encountered
+  r = np.nanmax(self.H[:, :N], 1) - np.nanmin(self.L[:, :N], 1)
+/tmp/claude-0/-home-user-Tradingview-PineScript-with-NQ/15bba16f-f33f-5548-9c6a-1eb415eb2457/scratchpad/agents/A_trend/tlib.py:108: RuntimeWarning: All-NaN slice encountered
+  r = np.nanmax(self.H[:, :N], 1) - np.nanmin(self.L[:, :N], 1)
+/tmp/claude-0/-home-user-Tradingview-PineScript-with-NQ/15bba16f-f33f-5548-9c6a-1eb415eb2457/scratchpad/agents/A_trend/tlib.py:108: RuntimeWarning: All-NaN slice encountered
+  r = np.nanmax(self.H[:, :N], 1) - np.nanmin(self.L[:, :N], 1)
+/tmp/claude-0/-home-user-Tradingview-PineScript-with-NQ/15bba16f-f33f-5548-9c6a-1eb415eb2457/scratchpad/agents/A_trend/tlib.py:108: RuntimeWarning: All-NaN slice encountered
+  r = np.nanmax(self.H[:, :N], 1) - np.nanmin(self.L[:, :N], 1)
+/tmp/claude-0/-home-user-Tradingview-PineScript-with-NQ/15bba16f-f33f-5548-9c6a-1eb415eb2457/scratchpad/agents/A_trend/tlib.py:108: RuntimeWarning: All-NaN slice encountered
+  r = np.nanmax(self.H[:, :N], 1) - np.nanmin(self.L[:, :N], 1)
+/tmp/claude-0/-home-user-Tradingview-PineScript-with-NQ/15bba16f-f33f-5548-9c6a-1eb415eb2457/scratchpad/agents/A_trend/tlib.py:108: RuntimeWarning: All-NaN slice encountered
+  r = np.nanmax(self.H[:, :N], 1) - np.nanmin(self.L[:, :N], 1)
+完成 29475 52 秒

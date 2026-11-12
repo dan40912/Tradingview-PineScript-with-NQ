@@ -1,0 +1,6 @@
+fa8124117ea195fccb37d89956b4438554e8516bdc7ae4c99a7955df04442cf2  candidates.py
+7945c806ede83f41141ab6a2c652a149a66a28a1d03eef490471a341a9b00573  families.py
+274199b65aa269813020d509f5ac4e94a7a8f8ae79390cbc49db52ba3a4b76f6  tlib.py
+# 之後的更動（看過測試期之後）：tlib.py 只加了一段壞價修正（2026-10-30 15:03 一根 Yahoo 壞 K，開/高 29,562），
+# 不影響探索／驗證（該段沒有任何 K 被改），也沒有改任何候選參數。修正後 tlib.py 的雜湊：
+050191c0f10e6431c615d8b3dd00bae5dd844e92f09ec9a9135f8e827e34ea68  tlib.py

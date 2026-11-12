@@ -1,0 +1,602 @@
+# -*- coding: utf-8 -*-
+"""產生 strategies.json 與 strategies.txt（P_strategist）。研究用途，不是投資建議。
+所有規格集中寫在這個檔案，txt 與 json 由同一份資料產生，避免兩邊不一致。"""
+import json, os
+
+OUT = os.path.dirname(os.path.abspath(__file__))
+
+COMMON = r"""
+================================================================
+第 0 部分：共用定義（所有策略都用這一套，除非該策略另外寫明）
+================================================================
+C1 時間與 K 棒
+  - 一律美東時間（ET）。網格 slot：slot 0＝前一天 18:00，slot 930＝09:30，slot 1319＝15:59，slot 1379＝16:59；
+    17:00～17:59 是 CME 休市。sim.slot_of("HH:MM") 換算。
+  - 1 分 K「時間 T」＝[T, T+1) 這一分鐘。
+  - N 分 K（N=5、15、30）從 18:00 起算對齊（slot 是 N 的倍數），因此 09:30 正好是 5／15／30 分 K 的開頭。
+    60 分 K：夜盤從 18:00 對齊；正規盤（RTH）從 09:30 對齊（09:30、10:30…）。
+    O＝第一個有效分鐘的開盤、H/L＝nanmax/nanmin、C＝最後一個有效分鐘的收盤、V＝加總。
+    有效分鐘數 < N/2 的 K 棒視為無效，不能產生訊號。
+  - 「在第 k 根 N 分 K 收盤時確定」＝這根 K 的最後一分鐘 slot a+N-1 收盤後才知道；
+    最早可用的進場 slot＝a+N（用 g.O[i, a+N] 進場）。所有下面寫「收盤確定」的條件都照此換算。
+C2 ATR／ADR
+  - ATR14_tf：該時間框 Wilder ATR(14)，TR＝max(H-L, |H-前C|, |L-前C|)，用已收盤 K 棒、跨日連續計算（含夜盤）。
+  - ADR10：前 10 個 RTH 交易日（09:30～15:59）的 (高-低) 平均；只用前一天以前的資料，09:30 前就可用。
+    （參考：2026-11-11 的 ADR10≈675.8 點。）
+C3 轉折點（pivot，強度 n）
+  - 轉折高點：H[k] > max(H[k-n..k-1]) 而且 H[k] >= max(H[k+1..k+n])（左邊嚴格、右邊可相等）。
+  - 轉折低點：L[k] < min(L[k-n..k-1]) 而且 L[k] <= min(L[k+1..k+n])。
+  - 在第 k+n 根收盤時才確定，第 k+n+1 根開始才能用。「最近的確定轉折高點」＝已確定的轉折中 k 最大的那個。
+C4 Fair Value Gap（FVG）
+  - 三根 K：k-2、k-1、k。多方 FVG：L[k] > H[k-2]，區間 下緣＝H[k-2]、上緣＝L[k]；
+    空方 FVG：H[k] < L[k-2]，區間 下緣＝H[k]、上緣＝L[k-2]。CE（中線）＝(上緣+下緣)/2。
+  - 大小＝上緣-下緣，必須 >= 該策略的 min_size。
+  - 位移（displacement）條件：第 k-1 根實體 |C-O| >= disp × ATR14_tf，且方向同 FVG（多方要 C>O）。
+  - 第 k 根收盤時確定。之後：多方 FVG「被觸碰」＝後面某根 L <= 上緣；「失效」＝後面某根收盤 C < 下緣。空方相反。
+C5 Order Block（OB）
+  - 綁定一次「多方結構突破事件」：第 b 根收盤 C[b] > 某個確定轉折高點 SH（SH 位於第 p 根）。
+  - m＝第 p+1 到 b 根之間最低 L 的那根（同值取較晚那根）。
+  - OB 根 j＝在 [m-3, m] 範圍內、最後一根陰線（C<O）。範圍內沒有陰線 → 這次事件沒有 OB。
+  - OB 區間：下緣＝L[j]，上緣＝O[j]（陰線實體頂）。固定，不調。
+  - 第 b 根收盤時確定。之後：「被觸碰」＝後面某根 L <= 上緣；「失效」＝某根收盤 C < 下緣。空方 OB 完全相反
+   （最後一根陽線、上緣＝H[j]、下緣＝O[j]）。
+C6 流動性池（價位），全部只在「可用時間」之後才能用
+  - PDH／PDL／PDC：前一個 RTH 日 09:30～15:59 高／低／收（features.daily_levels 的 pdh/pdl/pdc）。09:30 前已知。
+  - PWH／PWL：前一個日曆週（週一～週五交易日）所有分鐘（含夜盤）的最高／最低。週一 18:00 起可用。
+  - ONH／ONL：當天 slot 0～929（18:00～09:29）高／低。09:30 起可用。
+  - Asia 高／低：20:00～23:59（slot 120～359）。00:00 起可用。
+  - London 高／低：02:00～04:59（slot 480～659）。05:00 起可用。
+  - 午夜開盤（Midnight open）：00:00～00:14 第一個有效 1 分 K 的開盤；08:30 開盤、09:30 開盤同理（各自往後 15 分鐘內找第一個有效值，找不到＝當天不做）。
+  - NDOG：前一交易日 16:59（slot 1379）收盤 與 當天 18:00～18:14 第一個有效開盤 之間的區間。
+  - NWOG：上週五 16:59 收盤 與 週日 18:00～18:14 第一個有效開盤 之間的區間（週一的網格日）。
+C7 掃蕩（liquidity sweep），以「賣方流動性（低點）X」為例，買方相反
+  - 第 k 根（該策略指定的時間框）L[k] <= X - sweep_buf，且「收回」：C[k] > X（同根收回），
+    或在其後 r 根內有任一根收盤 > X。訊號在收回那根收盤時確定。sweep_buf 預設 2 點（=8 tick），r 預設 0（只認同根）。
+C8 結構：BOS／CHoCH／MSS
+  - 趨勢狀態：最近一次「收盤突破確定轉折」的方向。收盤 > 最近確定轉折高點 → 狀態=多；收盤 < 最近確定轉折低點 → 狀態=空。
+  - BOS＝突破方向與目前狀態相同；CHoCH＝突破方向與目前狀態相反（狀態翻轉的那一次）。
+  - ICT 的 MSS＝在掃蕩之後 W 根內出現的反向 CHoCH（一定要用收盤，不用影線）。
+C9 限價單在本引擎的近似（重要，結果唯一）
+  - 目前 sim.simulate_one 只能用「某個 slot 的開盤價」進場。凡規格寫「限價掛在 P」：
+    以 1 分 K 判斷，第一個 slot s 滿足 L[s] <= P（做多）或 H[s] >= P（做空）視為觸價，進場 slot＝s+1，進場價＝O[s+1]。
+    若 O[s+1] 已經在停損外（做多 O <= 停損價）→ 這筆取消。
+  - 回測者若擴充引擎支援真限價（成交價＝min(P, O[s])），請兩種都報，但以上面的近似為主。
+C10 停損換算與上限（配合 1 口 NQ、每日 $3,000）
+  - 結構停損價 stop_px 先算好；進場後 sl_pts＝|O[進場 slot] - stop_px|。
+  - sl_pts < 10 → 用 10（雜訊下限）；sl_pts > 145 → 這筆不做（不截斷，截斷會改變邏輯）。
+  - 因此每筆最壞虧損 ≤ 145×$20＋$48＝$2,948 < $3,000。
+C11 止盈
+  - R 倍數：tp_pts＝R × sl_pts。
+  - 「對面流動性」目標：tp_pts＝|目標價 - 進場價|；若 tp_pts < 1.0×sl_pts（RR<1）→ 改用 2R（固定規則，不調）。
+C12 每日風控與時間出場
+  - 同一時間只持有 1 口。下單前：今日已實現損益 − (sl_pts×20+48) < −3,000 → 不下。
+    （等於：當天一旦虧掉一筆大停損，就停手。）
+  - RTH 單最晚 15:59（exit_slot=1319）平倉；夜盤單（進場在 09:30 前）最晚 08:29（slot 869）平倉。
+  - 同一分鐘止盈止損都碰到 → 算止損（引擎預設）。
+C13 筆數
+  - 每個策略每天最多 1 筆（除非該策略寫明），多空訊號同時出現 → 不做。先出現的訊號優先。
+C14 編號與命名：參數組合名稱＝策略名_參數1值_參數2值_參數3值，例如 S03_PO3_mid_2R。
+C15 多重檢定：16 個策略的參數組合總數＝90（<100；每個策略的組合數寫在各自的 n_combos）。回測者請把 90 種全部報出來，不能只報最好的。
+"""
+
+S = []
+
+S.append(dict(
+    id="S01", name="ICT_SILVER_BULLET", family="ICT",
+    timeframe="1 分 K（FVG、進出場）；ATR14_1m",
+    entry_window_et="依參數：LON 03:00～03:59、AM 10:00～10:59、PM 14:00～14:59（FVG 的第 3 根要在窗內收盤；觸價也要在窗內）",
+    definitions=[
+        "FVG：依 C4，時間框 1 分，min_size=4 點，disp=1.5（第 2 根實體 >= 1.5×ATR14_1m，ATR 取第 k-2 根收盤時的值，從前一交易日 18:00 起連續計算）。",
+        "窗內『第一個』符合條件的 FVG 才算（多空都看，先出現者）；若它在窗內沒被觸價 → 當窗不交易（不改看下一個）。",
+        "bias=any：不加過濾。",
+        "bias=sweep：多方 FVG 的第 1 根（k-2）往前 10 根內（含 k-2），必須有一根 1 分 K 的低點 < 其前 30 根 1 分 K 的最低低點（＝剛掃掉近 30 分鐘的低點）；空方相反。不符合就看下一個 FVG。",
+    ],
+    entry="FVG 確定後（第 k 根收盤），限價掛在 FVG 上緣（多）／下緣（空），依 C9 觸價後下一分鐘開盤進場；觸價必須在窗內，否則取消。窗內最多 1 筆。",
+    stop="多：FVG 第 1 根（k-2）的低點 − 1 點；空：第 1 根高點 + 1 點。依 C10 換成 sl_pts（<10 用 10，>145 不做）。",
+    exit="止盈 2R（固定）。時間出場：窗結束後 60 分鐘（LON→04:59，但不晚於 08:29；AM→11:59；PM→15:59）。無移動停損。",
+    params_to_explore=[{"name": "window", "values": ["LON", "AM", "PM"]}, {"name": "bias", "values": ["any", "sweep"]}],
+    params_fixed=["min_size=4 點", "disp=1.5×ATR14_1m", "止盈 2R", "停損＝FVG 第 1 根外 1 點", "掃蕩回看 30 根、距離 10 根"],
+    n_combos=6,
+    rationale="ICT 認為這三個 1 小時窗是演算法『尋找流動性後再平衡（rebalance）』的時段；FVG 是單邊委託失衡留下的缺口，價格回測缺口時有剩餘委託承接。10:00 也是美股開盤後第一波假動作結束的時間。",
+    critiques="沒有原作者公開的停損／目標規則，社群版本各不相同；1 分 FVG 非常多、很多是雜訊；只要求『第一個 FVG』時，在 V 型反轉日常被開盤的回補 FVG 打掉。沒有可信的公開勝率統計。London 窗在既有研究中『倫敦盤掃價位』已失敗，要特別注意。",
+    sources=[
+        "https://www.luxalgo.com/library/concept/silver-bullet/",
+        "https://fxopen.com/blog/en/what-is-the-ict-silver-bullet-strategy-and-how-does-it-work",
+        "https://backtrex.com/en/blog/ict-silver-bullet-strategy-trading-guide",
+        "https://chartinglens.com/blog/ict-silver-bullet-strategy",
+        "https://ninjatrader.com/futures/blogs/fair-value-gaps/",
+    ],
+    expected_1111="（用快取 1 分 K 按本規格實算一次）AM 窗：10:00～10:59 有多個 1 分 FVG（例如 10:08 的 28,317～28,326），但沒有一個的中間 K 實體 >= 1.5×ATR14_1m → 不交易（any、sweep 都一樣）。這天的大漲是很多小 FVG 疊起來的，位移門檻擋掉了全部。PM 窗：第一個合格的是 14:04 空方 FVG 28,643.5～28,649，之後窗內價格沒有回到 28,643.5 → 不交易；sweep 版沒有合格 FVG。LON 窗：03:50 空方 FVG 28,264.25～28,268.75（any 與 sweep 都合格），03:52 開 28,263 做空、停損 28,284.25，03:59 停損 −21.25 點（約 −$473）。",
+))
+
+S.append(dict(
+    id="S02", name="ICT_2022_MODEL", family="ICT",
+    timeframe="5 分 K（掃蕩、MSS、FVG）；1 分 K 判斷觸價",
+    entry_window_et="09:30～11:30（掃蕩、MSS、進場都在此窗內）",
+    definitions=[
+        "流動性池（依參數 pools）：PD+ON＝{PDH, PDL, ONH, ONL}；ALL＝{PDH, PDL, ONH, ONL, Asia 高低, London 高低, PWH, PWL}。",
+        "掃蕩：依 C7，時間框 5 分，sweep_buf=2 點，r=0（同一根收回）。多方＝掃賣方池（低點）；空方＝掃買方池（高點）。同一根掃到多個池，取最極端的那個。",
+        "MSS：掃蕩那根 k 之後 6 根 5 分 K 內，出現收盤 > 『k 之前最近一個確定的 5 分轉折高點（n=2）』（多）；空方相反。",
+        "進場 FVG：5 分 K、依 C4（min_size=3 點、disp=0 不要求），第 3 根落在 [k+1, MSS 那根+1] 之內、方向與 MSS 相同；有多個取最後形成的那個。",
+    ],
+    entry="MSS 確定後 12 根 5 分 K（60 分鐘）內，限價掛在 FVG 上緣（entry=top）或 CE（entry=ce），依 C9 用 1 分 K 觸價、下一分鐘開盤進場。超過時限、或 FVG 失效 → 取消。",
+    stop="掃蕩那根的極端（多：L[k]）外 3 點。依 C10。",
+    exit="target=2R：止盈 2R。target=pool：最近一個在進場價另一邊、尚未被掃過的流動性池（同 pools 參數的集合）；RR<1 → 2R（C11）。時間出場 15:59。",
+    params_to_explore=[{"name": "pools", "values": ["PD+ON", "ALL"]}, {"name": "entry", "values": ["top", "ce"]}, {"name": "target", "values": ["2R", "pool"]}],
+    params_fixed=["5 分 K", "sweep_buf=2", "MSS 時限 6 根", "pivot n=2", "FVG min_size=3", "進場時限 12 根", "停損＝掃蕩極端外 3 點"],
+    n_combos=8,
+    rationale="『先拿流動性（停損單），再位移反轉』：掃掉明顯的高低點代表大單在那裡取得對手盤；隨後的 MSS 證明方向改變，FVG 回測是低風險進場點，停損放在掃蕩極端外。",
+    critiques="2022 model 是社群整理，沒有官方規格；『哪個 FVG』『MSS 用多大的轉折』每人不同。掃蕩後不反轉（真突破）的日子會連續停損；與既有 family.py『掃價位後收回』高度相關，差別只在多了 MSS＋FVG 確認與目標。",
+    sources=[
+        "https://www.luxalgo.com/library/concept/model-2022/",
+        "https://www.luxalgo.com/library/indicator/FK960gz8-2022-model-ict-entry-strategy-one-setup-for-life/",
+        "https://www.tradingview.com/script/uMi5os2q-ICT-2022-Mentorship-Model-TFO",
+    ],
+    expected_1111="賣方池（PDL 27,516、ONL 27,848、Asia 低 27,954、London 低 28,178、PWL 26,718）都在 RTH 低點 28,199 之下 → 沒有做多掃蕩。買方：09:30～09:34 高 28,426 掃過 ONH 28,406.25 並收在 28,348.75（收回）→ 空方掃蕩；09:40～09:44 收 28,288 跌破 09:10 的確定轉折低點 28,343 → MSS 成立。但掃蕩到 MSS 之間的 5 分 K 沒有形成空方 FVG（09:45 那根高 28,290.25 比 09:35 那根低 28,286.25 高 4 點，差一點）→ 不交易。若改用 1 分 FVG（不在本規格內）會在約 28,328 做空、停損 28,429，空單最低看到 28,199（差 2R 目標約 64 點）後被 10:40 的上漲打到停損，約 −100 點。",
+))
+
+S.append(dict(
+    id="S03", name="ICT_PO3_JUDAS", family="ICT",
+    timeframe="5 分 K（收盤確認）；1 分 K（低點／高點）",
+    entry_window_et="09:30～11:00（訊號收盤要在此窗內）",
+    definitions=[
+        "錨點 A（依參數）：mid＝午夜 00:00 開盤；0830＝08:30 開盤；0930＝09:30 開盤（C6）。",
+        "多方 Judas（往下的假動作）：09:30 之後到目前為止的最低低點 LL < A（至少低 1 tick＝0.25 點）。操縱必須發生在 09:30 之後（09:30 前價格在哪一邊不管）。",
+        "確認：LL < A 成立的那根 5 分 K（含）起，第一根收盤 > A 的 5 分 K。若造成 LL 的那根本身就收在 A 上方，那根就是確認。",
+        "空方完全相反（09:30 後最高 HH > A，之後第一根 5 分 K 收盤 < A）。多空誰先確認就做誰，當天只做 1 筆。",
+    ],
+    entry="確認那根 5 分 K 收盤後的下一分鐘開盤進場。",
+    stop="多：09:30 以來最低低點 LL − 3 點；空：HH + 3 點。依 C10（>145 不做）。",
+    exit="exit=2R：止盈 2R、15:59 時間出場。exit=EOD：不設止盈，浮盈達 1R 後停損移到進場價（be_trigger=1R、be_offset=0），抱到 15:59。",
+    params_to_explore=[{"name": "anchor", "values": ["mid", "0830", "0930"]}, {"name": "exit", "values": ["2R", "EOD"]}],
+    params_fixed=["操縱深度只要 1 tick（不設最小點數）", "5 分 K 收盤確認", "停損＝當日 RTH 極端外 3 點", "進場窗 09:30～11:00"],
+    n_combos=6,
+    rationale="Power of 3（累積→操縱→派發）：日線 K 的開盤附近先往反方向『假跌』拿停損，之後往真方向展開，日 K 收在開盤的另一邊。用『收回錨點』確認假動作結束。",
+    critiques="錨點各派不同（午夜、08:30、09:30）；回測文獻（黃金 18 年）顯示若每天都做，方向大約一半一半——必須靠收回確認才有意義。強趨勢日開盤就單邊走，不會回到錨點，就沒有訊號。",
+    sources=[
+        "https://www.luxalgo.com/library/concept/judas-swing/",
+        "https://www.luxalgo.com/library/concept/accumulation-manipulation-distribution/",
+        "https://www.tradingview.com/ideas/powerofthree/",
+        "https://www.mql5.com/en/blogs/post/778873",
+        "https://therighttrader.com/learn/smart-money-concepts/power-of-three",
+    ],
+    expected_1111="mid 錨點：午夜開盤（00:00～00:14 第一個有效值在 00:09）＝28,212。RTH 一直在 A 上方（空方需要收盤 < 28,212，從未發生）；09:50～09:54 低到 28,199（< A）且該根收 28,246 > A → 確認，09:55 開 28,247.75 做多，停損 28,196（51.75 點）。exit=2R：目標 28,351.25，10:25～10:29（高 28,388.5）達成，期間最低 28,233 沒碰停損 → +103.5 點（約 +$2,022）。exit=EOD：10:00～10:04 漲到 28,325 已達 1R → 停損移到 28,247.75，之後最低 28,261 沒碰到，15:59 收 28,484.25 → +236.5 點（約 +$4,682）。0930 錨點（28,352.75）：09:30～09:34 高 28,426（HH>A）並收 28,348.75 < A → 空方先確認，09:35 開 28,348.75 做空、停損 28,429（80.25 點），2R 目標 28,188.25，最低只到 28,199（差約 11 點），10:40～10:44 漲到 28,444 停損 → −80.25 點（約 −$1,653）。0830 錨點（28,381.75）：同一根 K 也是 HH>A、收 < A → 同一筆空單、同樣 −80.25 點。→ 這天只有『午夜開盤』版本正確抓到 PO3（開 28,212、先跌破、收在上方 272 點）。",
+))
+
+S.append(dict(
+    id="S04", name="ICT_OTE", family="ICT",
+    timeframe="5 分 K（結構與波段）；1 分 K（觸價）",
+    entry_window_et="09:30～12:00（MSS 與進場都在此窗內）",
+    definitions=[
+        "MSS：依 C8，5 分 K、pivot n=2，09:30 之後的第一次 CHoCH（以 09:30 時的狀態為基準，狀態由前一交易日 09:30 起的 5 分 K 連續計算）。之後同方向的 BOS 也可以觸發新的一段。",
+        "波段（多方）：leg_low＝MSS 所突破的那個轉折高點所在 K 棒（p）到 MSS 那根之間的最低低點；leg_high＝從 leg_low 那根到『上一根已收盤 5 分 K』的最高高點（隨新高更新）。",
+        "波段大小 leg_high − leg_low 必須 >= 0.15×ADR10，否則不掛單。",
+        "OTE 價位：leg_high − f × (leg_high − leg_low)，f 依參數。每次 leg_high 更新就重算掛單價。",
+        "失效：5 分 K 收盤 < leg_low，或 MSS 後已過 24 根（2 小時）。空方完全相反。",
+    ],
+    entry="依 C9：1 分 K 觸到 OTE 價位後下一分鐘開盤進場。",
+    stop="leg_low − 3 點（100% 回撤外）。依 C10。",
+    exit="目標以波段延伸計：target=0 → leg_high（前高）；target=-0.5 → leg_high + 0.5×波段；target=-1 → leg_high + 1.0×波段（波段在進場當下凍結）。15:59 時間出場。",
+    params_to_explore=[{"name": "f", "values": [0.62, 0.705, 0.79]}, {"name": "target", "values": ["0", "-0.5"]}],
+    params_fixed=["pivot n=2（5 分）", "最小波段 0.15×ADR10", "停損 leg_low−3", "MSS 後 24 根失效", "target=-1 先不測（留作之後）"],
+    n_combos=6,
+    rationale="結構改變後的第一次回檔，在 62%～79%（ICT 稱 OTE，70.5% 為中點）有較好的風報比；停損放在波段起點，目標是前高或延伸，等於用回撤換到 2～4 倍 RR。",
+    critiques="62～79% 只是傳統費波那契比例的改寫，沒有可靠勝率統計；強趨勢日不回檔、掛單不成交；深回撤（79%）常常就是反轉的開始。leg_high 隨新高更新會讓掛單一直上移。",
+    sources=[
+        "https://www.luxalgo.com/library/concept/optimal-trade-entry/",
+        "https://backtrex.com/en/blog/ict-optimal-trade-entry-ote-fibonacci-guide",
+        "https://tradingfinder.com/education/forex/ict-optimal-trade-entry-pattern",
+        "https://therighttrader.com/learn/smart-money-concepts/optimal-trade-entry",
+    ],
+    expected_1111="09:30 時 5 分結構狀態偏多（夜盤由 27,848 漲到 28,406）；09:40～09:44 收 28,288.25 跌破 09:10 的確定轉折低點 28,343 → 空方 CHoCH（MSS）。空方波段：leg_high＝09:10 到 09:40 之間最高 28,426，leg_low 隨新低更新（28,254.25 → 28,205 → 28,199），波段 227 點 > 0.15×ADR10（101 點）。以 28,199～28,426 計，做空掛單價：f=0.62 → 28,339.7、0.705 → 28,352.8、0.79 → 28,372.3。f=0.62：10:05～10:09 高 28,348 觸價 → 約 28,34x 做空，停損 28,429（約 88 點）。f=0.705、0.79：10:25～10:29（高 28,388.5）觸價 → 約 28,353／28,372 做空，停損 28,429（約 76／57 點）。三者之後都在 10:40～10:44（高 28,444）停損，target=0（28,199）或 −0.5 都沒到 → 全部虧損 57～88 點。當天每策略 1 筆，所以之後的多方行情（10:25 收 28,375 才出現多方 MSS，回檔都不到 62%）也沒參與。",
+))
+
+S.append(dict(
+    id="S05", name="ICT_NDOG_NWOG", family="ICT",
+    timeframe="5 分 K（反應確認）；1 分 K（觸價）",
+    entry_window_et="09:30～12:00",
+    definitions=[
+        "缺口（依參數 gap）：NDOG＝當天的新日開盤缺口；NWOG＝本週的新週開盤缺口（C6）。區間 [下緣, 上緣]、CE＝中點。",
+        "大小 >= min_size 點，否則不做。",
+        "多方（缺口在下方當支撐）：09:30 開盤 > 上緣；之後第一次 1 分 K 低點 <= CE（觸及 CE）；觸及後 3 根 5 分 K 內，有 5 分 K 收盤 > CE。",
+        "空方（缺口在上方當壓力）：09:30 開盤 < 下緣；第一次 1 分 K 高點 >= CE；之後 3 根 5 分 K 內收盤 < CE。",
+        "收盤跌破下緣（多方）＝缺口失效，當天不做。",
+    ],
+    entry="確認那根 5 分 K 收盤後下一分鐘開盤進場。",
+    stop="多：觸及 CE 之後到進場前的最低低點 − 5 點（C10，<10 用 10）。空方相反。",
+    exit="止盈 2R；15:59 時間出場。",
+    params_to_explore=[{"name": "gap", "values": ["NDOG", "NWOG"]}, {"name": "min_size", "values": [5, 20]}],
+    params_fixed=["反應以 CE 為準", "確認 3 根 5 分", "止盈 2R", "只用最新一個缺口（不保留 5 個歷史 NWOG）"],
+    n_combos=4,
+    rationale="ICT：休市前後的開盤缺口是演算法參考價，CE（50%）常是支撐／壓力；NWOG 權重高於 NDOG，可持續數週。",
+    critiques="NDOG 在 NQ 常常只有幾點，雜訊大；時間定義有 16:59 vs 17:00、18:00 vs 18:01 的差別；Yahoo 1 分資料 18:00 常缺值（11/11 的第一筆在 18:01），會讓缺口定義變動。來源多是指標商，沒有獨立統計。",
+    sources=[
+        "https://www.luxalgo.com/library/concept/new-day-opening-gap/",
+        "https://www.luxalgo.com/library/concept/new-week-opening-gap/",
+        "https://in.tradingview.com/script/EEnbbfQH-ICT-NWOG-NDOG-Gaps-TradingFinder-New-Opening-Gaps",
+        "https://kr.tradingview.com/script/EeAIUUCQ-NWOG-NDOG-mskender83/",
+    ],
+    expected_1111="NDOG＝11/10 最後收盤 27,900.75 與 11/11 18:01 開盤 27,882.5 → [27,882.5, 27,900.75]（18.25 點，CE 27,891.6）；NWOG＝11/06 週五 16:59 收 27,085.25 與週日 18:11 開 27,138.5 → [27,085.25, 27,138.5]（53 點）。RTH 最低 28,199，離兩個缺口都 300 點以上，沒有觸及 → 不交易。min_size=20 時 NDOG 本來就不合格。",
+))
+
+S.append(dict(
+    id="S06", name="ICT_SMT_NQ_ES", family="ICT",
+    timeframe="5 分 K（NQ 與 ES 同時間的 K 棒）",
+    entry_window_et="依參數：AM 09:30～11:00；DAY 09:30～15:00（訊號收盤要在窗內）",
+    definitions=[
+        "多方 SMT（第 k 根 5 分 K）：NQ 創新低 L_NQ[k] < min(L_NQ[k-LB..k-1])，同時 ES 沒有創新低 L_ES[k] >= min(L_ES[k-LB..k-1])（相等也算沒破）。",
+        "或反過來：ES 創新低而 NQ 沒有（NQ 較強）也算多方 SMT（做 NQ 多）。",
+        "空方 SMT：用高點，完全相反。",
+        "確認：SMT 那根之後 3 根 5 分 K 內，NQ 收盤 > H_NQ[k]（多）；空方收盤 < L_NQ[k]。",
+        "LB＝回看根數，依參數。ES 那根缺值 → 不判斷。",
+    ],
+    entry="確認那根收盤後下一分鐘開盤進場。",
+    stop="多：從第 k 根到確認那根的 NQ 最低低點 − 3 點；空方相反。依 C10。",
+    exit="止盈 2R；15:59 時間出場。",
+    params_to_explore=[{"name": "LB", "values": [6, 12, 24]}, {"name": "window", "values": ["AM", "DAY"]}],
+    params_fixed=["5 分 K", "確認 3 根", "止盈 2R", "停損＝極端外 3 點"],
+    n_combos=6,
+    rationale="NQ 與 ES 高度相關；一邊破低、一邊不破，代表破低那邊的賣壓沒有被另一個市場確認，常是掃停損後反轉（ICT『相關性裂縫』）。",
+    critiques="既有研究已發現『ES 同步』在 f_family 有用，這是同一資訊的不同用法，要注意重複；趨勢日 NQ 與 ES 可以連續背離而不反轉；定義（相等算不算）各家不同。",
+    sources=[
+        "https://www.luxalgo.com/library/concept/smart-money-technique-divergence/",
+        "https://therighttrader.com/learn/smart-money-concepts/smt-divergence",
+        "https://smartmoney.gitbook.io/smart-money-concepts/strategy/ict-smt-divergence",
+        "https://www.tradezella.com/playbooks/smt-divergence-po3",
+    ],
+    expected_1111="09:50～09:54：NQ 低 28,199 < 前 12 根（08:50～09:49）最低 28,205 → 新低；ES 低 7,596.0 > 前 12 根最低 7,593.25（09:45 那根）→ 沒破 → 多方 SMT。09:55～09:59 NQ 收 28,291.5 > 該根高點 28,286.5 → 確認。10:00 開 28,295 做多，停損 28,196（99 點），2R＝28,493 在 10:50～10:54（高 28,520.75）達成 → +198 點，約 +$3,912。LB=6、24 結果相同（前 6 根／24 根的 NQ 最低也都高於 28,199）。AM 與 DAY 相同。這是 16 個策略裡在 11/11 表現最好的之一。",
+))
+
+S.append(dict(
+    id="S07", name="SMC_TREND_OB_PD", family="SMC",
+    timeframe="15 分 K（趨勢／BOS／區間）；5 分 K（OB）；1 分 K（觸價）",
+    entry_window_et="09:45～14:30",
+    definitions=[
+        "15 分趨勢：依 C8，pivot n=2，從前一交易日 09:30 起連續計算；目前狀態＝多/空。",
+        "交易區間（多頭狀態）：range_low＝最近一個確定的 15 分轉折低點；range_high＝range_low 之後的最高高點（到上一根已收盤 15 分 K）。EQ＝(range_high+range_low)/2。折價區＝價格 < EQ；溢價區＝> EQ。",
+        "5 分 OB：依 C5（5 分 K、pivot n=2 的 BOS 事件）產生、尚未被觸碰也未失效的多方 OB；取最近形成的一個。",
+        "pd=on：只有 OB 上緣 <= EQ（在折價區）才可用；pd=off：不限。空頭狀態完全相反（空方 OB、在溢價區）。",
+    ],
+    entry="15 分狀態為多時，依 C9 用 1 分 K 觸及該 OB 上緣，下一分鐘開盤做多。觸價當下 15 分狀態必須仍為多。",
+    stop="OB 下緣 − 3 點（多）。依 C10。",
+    exit="target=2R：2R。target=range：多方目標 range_high（進場當下凍結；RR<1 → 2R）。15:59 時間出場。",
+    params_to_explore=[{"name": "pd", "values": ["on", "off"]}, {"name": "target", "values": ["2R", "range"]}],
+    params_fixed=["15 分 pivot n=2", "5 分 pivot n=2", "OB 定義 C5", "停損 OB 下緣−3"],
+    n_combos=4,
+    rationale="SMC：順高時間框結構（BOS 方向），在折價區買、溢價區賣；OB 是機構最後一次反向建倉的位置，回測時有剩餘訂單。",
+    critiques="SMC 的 BOS／OB 有大量主觀版本，影線 vs 收盤、pivot 長度都會改變結果；V 型反轉日不回測 OB；研究文獻沒有獨立驗證 OB 的反應率。",
+    sources=[
+        "https://luxalgo.com/library/indicator/Smart-Money-Concepts",
+        "https://www.luxalgo.com/library/concept/order-block-anatomy-and-refinement/",
+        "https://www.tradingview.com/education/ictorderblock",
+        "https://www.mql5.com/en/blogs/post/772364",
+        "https://dailypriceaction.com/blog/premium-and-discount-trading-strategy/",
+    ],
+    expected_1111="15 分：08:00～08:14 那根低 28,311.75 是最近的確定轉折低點（08:59 確定）；09:30～09:44 這根 15 分 K 收 28,288 < 28,311.75 → 09:45 起狀態翻空。空頭交易區間：range_high＝最近確定的 15 分轉折高 28,406.25（08:15 那根），range_low 隨新低到 28,199，EQ≈28,303，溢價區在 28,303 以上。5 分空方 OB 來自 09:40 的 5 分空方 BOS（跌破 28,343），OB 是 09:30 高點附近最後一根陽線，大約在 28,35x～28,38x（精確位置需實算），位於溢價區。10:25～10:29 高 28,388.5 觸及 → 做空、停損在 OB 上緣外 3 點；10:35～10:44 漲到 28,411／28,444 → 停損，估計 −30～−80 點。10:45～10:59 收 28,549 > 15 分轉折高 → 翻多，但對應的多方 OB（09:50 那根，[28,199, 28,246.75]）之後再也沒回到 → 不做多。整體：一筆空單虧損，錯過上漲。",
+))
+
+S.append(dict(
+    id="S08", name="SMC_CHOCH_IDM", family="SMC",
+    timeframe="15 分 K（外部流動性）；5 分 K（CHoCH、OB、IDM）；1 分 K（觸價）",
+    entry_window_et="09:30～14:30",
+    definitions=[
+        "外部流動性：最近一個確定的 15 分轉折低點 SL15（pivot n=2）。",
+        "掃蕩：5 分 K 低點 <= SL15 − 1 點（不要求收回）。記下掃蕩那根 k。",
+        "CHoCH：k 之後 12 根 5 分 K 內，5 分收盤 > 『k 之前最近一個確定的 5 分轉折高點』（pivot n=n5）。",
+        "POI：這次 CHoCH 事件依 C5 產生的 5 分多方 OB；沒有 OB → 不做。",
+        "IDM（誘導）：CHoCH 之後第一個確定的 5 分轉折低點（n=1），而且它的低點 > POI 上緣。idm=on：必須先有 1 分 K 低點 < IDM 低點（誘導被掃）之後，才允許觸 POI 進場；若 IDM 尚未形成就觸到 POI → 這次不做。idm=off：不需要。",
+        "空方完全相反。",
+    ],
+    entry="CHoCH 後 24 根 5 分 K 內，依 C9 用 1 分 K 觸 POI 上緣、下一分鐘開盤做多。",
+    stop="POI 下緣 − 3 點。依 C10。",
+    exit="target=2R 或 3R；15:59 時間出場。",
+    params_to_explore=[{"name": "idm", "values": ["on", "off"]}, {"name": "target", "values": ["2R", "3R"]}, {"name": "n5", "values": [2, 3]}],
+    params_fixed=["15 分 pivot n=2", "IDM pivot n=1", "CHoCH 時限 12 根", "進場時限 24 根"],
+    n_combos=8,
+    rationale="SMC 的完整反轉序列：先掃外部流動性 → 低時間框 CHoCH → 等第一個回檔（誘導）被掃，散戶的『提早進場』停損被拿掉後，價格才回到真正的 POI。",
+    critiques="IDM 的定義各家差很多（有人用 CHoCH 段內第一個回檔、有人用最近內部回檔）；條件串太長，交易數可能很少；多重條件讓參數極易過度擬合。",
+    sources=[
+        "https://www.luxalgo.com/library/concept/inducement/",
+        "https://backtrex.com/en/blog/smc-inducement-concept-trading",
+        "https://tradingfinder.com/education/forex/inducement",
+        "https://www.tradingview.com/script/rT7lemuL-SMC-Clean-Structure-Liquidity",
+    ],
+    expected_1111="09:40～09:54 的 5 分 K 低點（28,254→28,205→28,199）掃掉早盤的 15 分轉折低點。k 之前最近的確定 5 分轉折高點是 09:30 那根的 28,426，CHoCH 要收盤 > 28,426：10:40～10:44 收 28,429.75，距掃蕩約 11 根，在 12 根時限內 → CHoCH 成立。POI＝09:50 那根陰線（O 28,246.75、C 28,246）→ [28,199, 28,246.75]。之後價格一路上漲，從未回到 28,246.75 → 不交易（idm on/off 都一樣）。",
+))
+
+S.append(dict(
+    id="S09", name="MSNR_FRESH_LEVEL", family="SNR（Malaysian SnR）",
+    timeframe="15 分 K（畫水平）；60 分 K（storyline）；1 分 K（觸價）",
+    entry_window_et="09:30～15:00；每天最多 2 筆",
+    definitions=[
+        "只用收盤價（line chart）。A-level：15 分收盤的轉折高點（C3 套用在 C 序列、n=2），價位＝C[k]；V-level：收盤轉折低點，價位＝C[k]。",
+        "Gap level：連續兩根同色 15 分 K（k-1、k 都是陽線），而且第 k 根實體 >= 1.0×ATR14_15m → 多方 gap level＝C[k-1]（支撐）；兩根陰線＋第 k 根實體 >= 1.0×ATR14_15m → 空方 gap level＝C[k-1]（壓力）。",
+        "確定時間：A/V 在 k+2 收盤；gap 在 k 收盤。只保留最近 3 個交易日（含夜盤）內產生的水平。",
+        "Fresh：從確定時間起，沒有任何 K 棒影線碰到（A／空方 gap：H >= 價位；V／多方 gap：L <= 價位）。被碰一次就變 unfresh，不再交易。",
+        "Refresh（翻轉）：若 15 分 K 收盤穿過一個水平（A 被收盤 > 價位），該水平變成反向角色（A→支撐）且重新 fresh。",
+        "storyline=on：60 分 K 的 A/V（同樣方法、n=2）：最近一次 60 分收盤突破的是 A-level（往上）→ 多方故事線，只做支撐（V、多方 gap、翻轉後支撐）；突破 V-level（往下）→ 只做壓力。storyline=off：兩邊都做。",
+        "level_type=AV：只用 A/V；GAP：只用 gap level。",
+    ],
+    entry="依 C9：1 分 K 第一次觸及 fresh 水平 → 下一分鐘開盤進場（支撐做多、壓力做空）。",
+    stop="多：水平價 − max(10, 0.75×ATR14_15m)；空方相反。依 C10。",
+    exit="target=2R：2R。target=next：進場方向上下一個 fresh 的反向水平（多單找最近的 fresh A／空方 gap）；RR<1 → 2R。15:59 時間出場。",
+    params_to_explore=[{"name": "level_type", "values": ["AV", "GAP"]}, {"name": "storyline", "values": ["on", "off"]}, {"name": "target", "values": ["2R", "next"]}],
+    params_fixed=["15 分", "收盤 pivot n=2", "gap 實體 1.0×ATR", "回看 3 日", "停損 0.75×ATR14_15m", "每日 2 筆"],
+    n_combos=8,
+    rationale="Malaysian SnR 認為用收盤（不是影線）畫的水平才是真正成交的價位；第一次回測（fresh）時反應最大，被碰過的水平委託已被消耗。storyline 讓方向跟高時間框一致。",
+    critiques="來源以社群文件和指標說明為主，沒有獨立統計；『storyline』沒有統一的客觀定義（本規格用 60 分最近一次突破代替）；水平太多時幾乎每天都有觸價，勝率接近隨機。",
+    sources=[
+        "https://www.luxalgo.com/library/concept/malaysian-snr/",
+        "https://in.tradingview.com/script/iWgxW7bW/",
+        "https://docs.google.com/document/d/17Gdm8wYWsXeQ4FuZYBZh9UG3zf_dPzdl/export?format=pdf",
+    ],
+    expected_1111="夜盤 15 分收盤序列：02:30 那根收 28,183（左 28,210、28,220，右 28,240.25、28,269 都較高）→ V-level 28,183，03:14 確定，之後最低 28,199 沒碰到 → 一直 fresh 但沒被觸及。04:00 那根收 28,266.75（左 28,285.5、28,304.5，右 28,280.25、28,288.5）→ V-level 28,266.75，04:44 確定，夜盤沒碰到；RTH 09:40～09:44 低 28,254 → 第一次觸價做多（約 28,26x），停損約 28,23x（0.75×ATR15 約 35 點）→ 09:45～09:49 低到 28,205 被停損，約 −35 點。第二筆：下一個 fresh 支撐是 28,183，沒有被碰 → 當天只有 1 筆小虧。60 分故事線為多（夜盤上漲），storyline on/off 結果相同。GAP 類型需實際計算。",
+))
+
+S.append(dict(
+    id="S10", name="WYCKOFF_SPRING_UPTHRUST", family="破底翻／假突破",
+    timeframe="5 分 K",
+    entry_window_et="10:00～14:30（訊號收盤要在窗內）",
+    definitions=[
+        "交易區間：第 k 根之前 12 根 5 分 K（60 分鐘）的最高 RH、最低 RL；高度 R＝RH−RL，必須 R <= 0.35×ADR10（盤整），且 R >= 20 點。",
+        "Spring（多）：L[k] < RL − 2 點，而且 C[k] > RL（收回區間內）。",
+        "Upthrust（空）：H[k] > RH + 2 點，而且 C[k] < RH。",
+        "confirm=now：第 k 根收盤即訊號。confirm=test：k 之後 6 根內，出現一根 5 分 K 滿足 L > L[k]（不破 spring 低點）、V < V[k]（量縮）、C > O（陽線），以它收盤為訊號；空方相反。",
+    ],
+    entry="訊號收盤後下一分鐘開盤進場。",
+    stop="多：L[k]（spring 低點）− 3 點；空：H[k] + 3 點。依 C10。",
+    exit="target=range：多方目標 RH（區間對側）；RR<1 → 2R。target=2R：2R。15:59 時間出場。",
+    params_to_explore=[{"name": "confirm", "values": ["now", "test"]}, {"name": "target", "values": ["range", "2R"]}],
+    params_fixed=["區間 12 根", "盤整 R<=0.35×ADR10 且 >=20 點", "突破 2 點", "不加量能過濾（只有 test 模式用量縮）"],
+    n_combos=4,
+    rationale="Wyckoff：區間下緣被跌破卻立刻收回（spring），代表下方沒有賣壓、是主力測試供給；上緣假突破（upthrust）相反。收回後的『測試』量縮再確認更可靠。",
+    critiques="原始 Wyckoff 需要完整的累積／派發結構背景，日內 60 分鐘區間只是近似；強趨勢日的假突破常變真突破；既有研究『掃價位後收回』家族已部分涵蓋（不同處：區間是滾動的 60 分鐘盤整，而不是固定價位）。",
+    sources=[
+        "https://www.luxalgo.com/library/concept/spring/",
+        "https://www.luxalgo.com/library/concept/upthrust/",
+        "https://capital.com/en-int/learn/technical-analysis/the-wyckoff-method",
+        "https://therighttrader.com/learn/volume-and-order-flow/upthrust-bar",
+    ],
+    expected_1111="（用快取 5 分 K 逐根核對）ADR10≈676，盤整上限 236 點。11:00～11:04 雖然高 28,554.5 > 前 60 分鐘高 28,550.25+2 且收回，但區間 294 點太寬 → 不算。第一個合格訊號：12:00～12:04 upthrust（高 28,624.5 > 區間高 28,619.25+2，收 28,610.25 回到區間內，區間 28,462～28,619.25＝157 點）。confirm=now：12:05 開 28,610.5 做空，停損 28,627.5（17 點）；target=2R（28,576.5）在 12:05～12:09（低 28,575）達成 → +34 點；target=range（28,462）沒到，12:20～12:24 漲到 28,660 停損 → −17 點。confirm=test：12:00 之後 6 根內沒有『高點更低＋量縮＋陰線』的 K → 等下一個 upthrust：12:35～12:39（高 28,666.25 > 28,660+2，收 28,651.75），12:40～12:44 為合格測試（高 28,660.75、量 2,938 < 3,402、陰線）→ 12:45 開 28,641.25 做空、停損 28,669.25（28 點），2R＝28,585.25 沒到（最低 28,601.25），13:20 前後漲到 28,684 停損 → −28 點（range 目標同）。13:45 那根（高 28,697、收 28,679.5）也是 upthrust，但當天已用掉 1 筆。",
+))
+
+S.append(dict(
+    id="S11", name="TURTLE_SOUP_NDAY", family="破底翻／假突破",
+    timeframe="日線價位＋1 分 K 觸發",
+    entry_window_et="09:30～12:00",
+    definitions=[
+        "價位：N 日低＝前 N 個 RTH 日（09:30～15:59）的最低低點；N 日高同理。N 依參數。",
+        "N>=5 時，原版要求『前一個 N 日低點至少在 3 個交易日以前形成』（Raschke 書中為 4 日，來源不一致；固定用 3）；N=1 就是 PDL／PDH，無此限制。",
+        "做多：當天 09:30 之後，1 分 K 低點 <= N 日低 − 3 點（真的跌破），之後第一根 1 分 K 收盤 >= N 日低 + 0.5 點（相當於原版在前低上方幾個 tick 的買進停損單）。",
+        "做空完全相反。",
+    ],
+    entry="觸發那根 1 分 K 收盤後下一分鐘開盤進場。當天最多 1 筆。",
+    stop="多：當天 09:30 以來最低低點 − 2 點（原版：進場日低點下方）。依 C10。",
+    exit="exit=2R：2R。exit=EOD：浮盈 1R 後移到保本，抱到 15:59。",
+    params_to_explore=[{"name": "N", "values": [1, 5, 20]}, {"name": "exit", "values": ["2R", "EOD"]}],
+    params_fixed=["跌破 3 點", "收回 +0.5 點", "N>=5 的舊低至少 3 日前", "停損＝當日極端−2"],
+    n_combos=6,
+    rationale="Raschke／Connors 的 Turtle Soup：突破 N 日新低的人（海龜系統）在假突破時被套，停損與回補造成快速反彈；ICT 也把這種掃前低稱為 Turtle Soup。",
+    critiques="原版是多日持有的日線策略；日內版本與 family.py『掃 PD 價位後收回』重疊（N=1 時幾乎相同），N=5、20 才是新的資訊；觸發次數少。",
+    sources=[
+        "https://technical.traders.com/tradersonline/display.asp?art=2414",
+        "https://www.quantvps.com/blog/turtle-soup-trading-strategy",
+        "https://tradingmarkets.com/recent/breakout_after_failure-654653",
+        "https://www.luxalgo.com/library/concept/turtle-soup/",
+        "https://therighttrader.com/learn/trading-strategies/turtle-soup",
+    ],
+    expected_1111="N=1：PDH 28,090／PDL 27,516，RTH 整天在 28,199～28,697，開盤就在 PDH 上方 263 點，沒有『跌破 PDL』也沒有『漲破 PDH 後收回 PDH 下方』→ 不交易。N=5：前 5 日高 28,969（11/04）、低 26,718（11/05），都沒碰到 → 不交易。N=20 同樣不交易。",
+))
+
+S.append(dict(
+    id="S12", name="ORB_ZARATTINI", family="開盤區間（ORB）",
+    timeframe="依 T：5／15／30 分的開盤區間；1 分 K 管理",
+    entry_window_et="09:35／09:45／10:00 進場（依 T）",
+    definitions=[
+        "開盤區間 OR：09:30 到 09:30+T−1 的 O（09:30 開盤）、H、L、C（最後一分鐘收盤）。",
+        "方向：C > O 做多、C < O 做空；若 |C−O| < 0.1×(H−L)（十字）→ 不做。",
+        "ATR_D：ADR10（C2）。",
+    ],
+    entry="09:30+T 那一分鐘開盤進場（例：T=5 → 09:35 開盤）。",
+    stop="stop=OR：多單停在 OR 低點、空單停在 OR 高點（論文 QQQ 版）。stop=ATR：進場價 ∓ 0.10×ADR10（論文個股版用 10%×ATR14）。依 C10（>145 不做）。",
+    exit="不設止盈，15:59 收盤出場（論文設定；10R 目標在 NQ 幾乎不會達到，固定不用）。",
+    params_to_explore=[{"name": "T", "values": [5, 15, 30]}, {"name": "stop", "values": ["OR", "ATR"]}],
+    params_fixed=["十字門檻 0.1", "收盤出場", "沒有移動停損"],
+    n_combos=6,
+    rationale="Zarattini & Aziz（2023）：開盤第一根 5 分 K 的方向帶有當天的資訊（隔夜消息的消化），用 OR 極端當停損、抱到收盤，讓少數趨勢日賺大錢。",
+    critiques="論文在 QQQ 毛報酬好，但有實務者在 5 個指數上重現後『扣成本後約為 0』；既有研究 C1 的 ORB15 在價值區架構下 2026 不顯著；勝率低（約 25～40%），連虧壓力大；用 OR 極端當停損時 NQ 的距離常超過 145 點而不做。",
+    sources=[
+        "https://papers.ssrn.com/abstract=4416622",
+        "https://concretumgroup.com/can-day-trading-really-be-profitable/",
+        "https://www.cxoadvisory.com/technical-trading/day-trading-with-an-opening-range-breakout-strategy",
+        "https://www.mql5.com/en/blogs/post/776235",
+    ],
+    expected_1111="T=5：O 28,352.75、C 28,348.75、H−L＝94.5 → |C−O|=4 < 9.45 → 十字，不做。T=15：C 28,288.25 < O → 09:45 開 28,287.25 做空；stop=OR → 28,426（138.75 點，可做），10:40～10:44 高 28,444 → 停損 −138.75 點（約 −$2,823，當天就停手）。stop=ATR → 67.6 點，10:25～10:29 被打掉（約 −$1,400）。T=30：C 28,291.5 < O → 10:00 開 28,295 做空，OR 停損 28,426（131 點）→ 10:40 停損；ATR 停損 → 10:25 停損。這天 ORB 全部虧損——典型『開盤先殺、之後整天漲』的反轉日。",
+))
+
+S.append(dict(
+    id="S13", name="IB_EXTENSION", family="Market Profile",
+    timeframe="5 分 K（突破確認）；1 分 K（管理）",
+    entry_window_et="10:30～13:00",
+    definitions=[
+        "初始平衡 IB：09:30～10:29 的高 IBH、低 IBL，IBR＝IBH−IBL。10:30 起可用。",
+        "filter=all：不限；filter=narrow：只做 IBR <= 0.35×ADR10 的日子（Dalton：IB 窄的日子較容易延伸）。",
+        "突破：10:30 之後第一根 5 分 K 收盤 > IBH（做多）或 < IBL（做空）；之前那根收盤必須在 IB 內（避免追已經在外面的價格）。當天只做第一個突破方向。",
+    ],
+    entry="突破那根收盤後下一分鐘開盤進場。",
+    stop="IBH − 0.25×IBR（多）；IBL + 0.25×IBR（空）。依 C10。",
+    exit="止盈 IBH + m×IBR（多）／IBL − m×IBR（空），m 依參數；15:59 時間出場。",
+    params_to_explore=[{"name": "m", "values": [0.5, 1.0]}, {"name": "filter", "values": ["all", "narrow"]}],
+    params_fixed=["IB＝60 分", "停損＝IB 內 25%", "進場窗 10:30～13:00"],
+    n_combos=4,
+    rationale="Market Profile（Dalton）：IB 是早盤參與者建立的平衡，長時間框參與者進場才會造成區間延伸；延伸常達 0.5～1.0 倍 IB。社群 NQ 統計顯示只有極少數日子整天留在 IB 內。",
+    critiques="IB 突破後回到 IB 內（雙邊延伸的中性日）會停損；寬 IB 日的停損很容易超過 145 點；網路上的 NQ IB 統計多為指標商自算、樣本與定義不一。",
+    sources=[
+        "https://nexusfi.com/a/market-structure/market-profile-day-types",
+        "https://therighttrader.com/learn/volume-and-order-flow/initial-balance",
+        "https://www.tradingview.com/script/2iuvi66N-Initial-Balance-Statistical-Mapping/",
+        "https://www.edgeful.com/blog/posts/nq-futures-trading",
+    ],
+    expected_1111="IB＝28,199～28,426（227 點）；0.35×ADR10＝236.5 → narrow 也成立。10:40～10:44 收 28,429.75 > IBH（前一根 10:35～10:39 收 28,391 在 IB 內）→ 10:45 開 28,427.75 做多，停損 28,369.25（58.5 點）。m=0.5：目標 28,539.5，10:55～10:59 高 28,550 達成 → +111.75 點（約 +$2,187）。m=1.0：目標 28,653，12:15～12:29 高 28,660 達成，期間最低 28,413 沒碰停損 → +225 點（約 +$4,452）。",
+))
+
+S.append(dict(
+    id="S14", name="VWAP_SIGMA_REVERT", family="VWAP",
+    timeframe="1 分 K 計算 VWAP；5 分 K 訊號",
+    entry_window_et="10:00～15:00",
+    definitions=[
+        "VWAP：從 09:30 開始，典型價 TP＝(H+L+C)/3，VWAP＝Σ(TP×V)/ΣV（1 分 K 累計，到訊號 K 最後一分鐘為止）。",
+        "σ＝sqrt(Σ V×(TP−VWAP_t)² / ΣV)（同樣累計，VWAP_t 用當下值）。上帶 U_k＝VWAP + k×σ，下帶同理。",
+        "做空：某根 5 分 K 收盤 > U_k（在外；這根也必須在 10:00 之後收盤）之後，第一根收盤 < U_k（收回）的 5 分 K。做多相反。U_k 用各自那根 K 收盤時的 VWAP、σ。",
+        "slope=on（趨勢過濾）：若做空時 VWAP 在最近 30 分鐘上升超過 0.25σ（VWAP_now − VWAP_30分鐘前 > 0.25σ）→ 不做；做多相反。slope=off：不過濾。",
+    ],
+    entry="收回那根收盤後下一分鐘開盤進場。當天最多 1 筆。",
+    stop="做空：從『第一根在外的 K』到收回那根之間最高高點 + 3 點；做多相反。依 C10。",
+    exit="止盈固定為 VWAP（進場當下凍結）；15:59 時間出場。",
+    params_to_explore=[{"name": "k", "values": [2.0, 2.5]}, {"name": "slope", "values": ["on", "off"]}],
+    params_fixed=["VWAP 從 09:30 起算", "5 分收盤確認", "目標＝VWAP", "停損＝外側極端+3"],
+    n_combos=4,
+    rationale="VWAP 是機構執行基準；±2σ 是統計上的極端，盤整日價格偏離後傾向回歸。用『收回帶內』而不是『碰到帶』進場，避免接刀。",
+    critiques="既有研究顯示指標單獨進場在 NQ 失敗；趨勢日價格會沿著 2σ 一路走，均值回歸連續停損（必須靠 slope 過濾）；σ 在早盤很小，10:00 前不做。",
+    sources=[
+        "https://crosstrade.io/learn/trading-strategies/vwap-reversion",
+        "https://nexusfi.com/a/strategies/vwap-trading-strategies",
+        "https://www.tradezella.com/blog/vwap-trading-strategy",
+        "https://dev.to/fmzquant/vwap-deviation-band-and-volatility-filter-trading-strategy-2do1",
+    ],
+    expected_1111="（用快取 1 分 K 計算 VWAP/σ）價格 10:40 後沿上帶走，是典型趨勢日。k=2、slope=off：10:40～10:44 收 28,429.75 > 上帶 28,419.9（在外），11:05～11:09 收 28,466.5 < 上帶 28,522.8（收回）→ 11:10 開 28,467 做空，停損 28,557.5（90.5 點），目標 VWAP 28,352.8；11:25～11:29 漲到 28,573 → 停損 −90.5 點（約 −$1,858）。k=2、slope=on：11:05 那次 VWAP 30 分鐘上升 39 點 > 0.25σ（21 點）→ 擋掉；下一次 11:30～11:34 收 28,528 回到帶內（11:25 那根收在外），VWAP 30 分鐘上升 22.9 < 0.25σ（24.1）→ 允許，11:35 開 28,528 做空、停損 28,576（48 點），11:45～11:49 高 28,587.75 → 停損 −48 點。k=2.5、slope=off：11:00～11:04 收回 → 11:05 開 28,520.75 做空、停損 28,557.5（36.75 點），11:25 停損 −36.75 點。k=2.5、slope=on：被斜率擋掉，之後沒有再收在 2.5σ 外 → 不交易。結論：這天 VWAP 回歸只有『不交易』或虧損。",
+))
+
+S.append(dict(
+    id="S15", name="SESSION_RANGE_BREAK", family="時段區間（夜盤／亞洲／倫敦）",
+    timeframe="5 分 K",
+    entry_window_et="09:30～11:30",
+    definitions=[
+        "區間（依參數 range）：ON＝18:00～09:29 的 ONH/ONL；ASIA＝20:00～23:59；LON＝02:00～04:59（C6）。RH／RL。",
+        "mode=retest（突破回測續行）：多＝某根 5 分 K 收盤 > RH 且前一根收盤 <= RH（剛突破）；之後 6 根內出現 L <= RH + 5 點（回測）的 K，且某根（可同一根）收盤 > RH → 訊號。空方相反。",
+        "mode=fail（假突破反轉）：空＝前一根收盤 <= RH，本根 H > RH + 2 點且 C < RH → 訊號。多方用 RL 相反。（與 family.py 的『掃價位收回』類似，但區間與時間不同。）",
+        "當天第一個訊號才做。",
+    ],
+    entry="訊號收盤後下一分鐘開盤進場。",
+    stop="retest：回測那段（突破後到訊號）最低低點 − 3 點；fail：訊號那根高點 + 3 點（空）。依 C10。",
+    exit="止盈 2R；15:59 時間出場。",
+    params_to_explore=[{"name": "range", "values": ["ON", "ASIA", "LON"]}, {"name": "mode", "values": ["retest", "fail"]}],
+    params_fixed=["回測容差 5 點", "回測時限 6 根", "假突破至少 2 點", "止盈 2R"],
+    n_combos=6,
+    rationale="夜盤／亞洲／倫敦的高低是隔夜累積的停損與掛單位置；社群 NQ 統計：RTH 幾乎每天會碰到 ONH 或 ONL，但真正的問題是『先碰哪邊、碰了會不會守住』——回測守住就續行，收回就反轉。",
+    critiques="既有研究『倫敦盤掃價位』與『夜盤大漲後開盤追多』都失敗；這裡只在 RTH 交易、用的是區間本身，但仍需注意重疊。夜盤區間常常很寬，續行的停損容易超過 145 點。",
+    sources=[
+        "https://nexusfi.com/a/data/pre-market-data-overnight-session-analysis",
+        "https://help.edgeful.com/en/articles/16099353-how-to-read-and-trade-the-overnight-range-breakout-report",
+        "https://www.luxalgo.com/library/concept/killzones/",
+        "https://www.tradezella.com/learning-items/timing-context",
+    ],
+    expected_1111="ON（27,848～28,406.25）fail：09:30～09:34 高 28,426（>ONH+2）、收 28,348.75（<ONH），前一根 09:25 收 28,352 在區間內 → 09:35 開 28,348.75 做空、停損 28,429（80.25 點），2R 目標 28,188.25，最低只到 28,199（差 11 點），10:40 停損 → −80.25 點（約 −$1,653）。ON retest：10:40 收 28,429.75 突破，之後 6 根最低 28,413.75 沒回到 28,411.25 → 不交易。LON（28,178～28,326.75）retest：10:25 收 28,375 突破，10:30 低 28,336.5 沒回到 28,331.75 → 不交易；LON fail：10:05～10:09 高 28,348 > RH+2、收 28,302.25 < RH、前一根收 28,318 在區間內 → 10:10 開 28,304 做空、停損 28,351（47 點），2R＝28,210 沒到（最低 28,261），10:25 停損 −47 點。ASIA（27,954～28,219.75）：價格整天在區間上方，沒有合格的突破或假突破 → 不交易。",
+))
+
+S.append(dict(
+    id="S16", name="RTH_GAP_FADE", family="開盤跳空",
+    timeframe="5 分 K",
+    entry_window_et="09:35 進場（只看第一根 5 分 K）",
+    definitions=[
+        "跳空 gap＝09:30 開盤 − PDC（前一 RTH 收盤）。",
+        "條件：0.10×ADR10 <= |gap| <= gmax×ADR10（gmax 依參數）。",
+        "第一根 5 分 K（09:30～09:34）收盤往回補方向：上跳空要 C < O、下跳空要 C > O。",
+    ],
+    entry="09:35 開盤進場（上跳空做空、下跳空做多）。",
+    stop="第一根 5 分 K 的高點 + 3 點（做空）／低點 − 3 點（做多）。依 C10。",
+    exit="止盈＝回補 fill 比例：fill=50% → 目標 09:30 開盤 − 0.5×gap；fill=100% → 目標 PDC；RR<1 → 2R。15:59 時間出場。",
+    params_to_explore=[{"name": "gmax", "values": [0.25, 0.5]}, {"name": "fill", "values": ["50%", "100%"]}],
+    params_fixed=["最小跳空 0.10×ADR10", "第一根 5 分確認", "停損＝第一根極端外 3 點"],
+    n_combos=4,
+    rationale="指數期貨的 RTH 跳空大部分會在當天部分或全部回補（社群統計：小跳空當日回補率 80% 以上，大跳空約 55%）；第一根 K 的方向確認避免逆勢接刀。",
+    critiques="既有研究 A1 測過跳空與 gapgo，要注意重疊；大跳空（趨勢日）回補率顯著下降；回補統計來源定義不一（全補 vs 半補、RTH vs 夜盤）。",
+    sources=[
+        "https://nexusfi.com/a/strategies/gap-trading-futures",
+        "https://mypivots.com/gapfill",
+        "https://www.thetrading.tools/gap-analysis",
+        "https://help.edgeful.com/en/articles/12859545-understanding-the-gap-fill-report",
+    ],
+    expected_1111="gap＝28,352.75 − 27,835.75＝+517 點＝0.77×ADR10 > 0.5 → 兩個 gmax 都不做。（若不設上限：第一根收 28,348.75 < 開盤 → 09:35 做空、停損 28,429，價格最低 28,199，沒到 50% 回補 28,094，之後被停損 −80 點——這正是大跳空不該回補的例子。）",
+))
+
+
+def check():
+    tot = 0
+    for s in S:
+        n = 1
+        for p in s["params_to_explore"]:
+            assert 2 <= len(p["values"]) <= 4, (s["id"], p)
+            n *= len(p["values"])
+        assert len(s["params_to_explore"]) <= 3, s["id"]
+        assert n == s["n_combos"], (s["id"], n, s["n_combos"])
+        tot += n
+    return tot
+
+
+def write():
+    tot = check()
+    meta = {
+        "author": "P_strategist",
+        "note": "研究用途，不是投資建議。所有規格配合 BRIEF.md 規則（下一分鐘開盤進場、1 口 NQ、每筆最壞 ≤145 點、每日 $3,000、15:59／08:29 出場）。",
+        "common_definitions": COMMON.strip(),
+        "total_param_combos": tot,
+        "strategies": [],
+    }
+    for s in S:
+        d = {k: s[k] for k in ["id", "name", "family", "timeframe", "entry_window_et", "definitions", "entry", "stop", "exit",
+                                "params_to_explore", "params_fixed", "n_combos", "rationale", "critiques", "sources", "expected_1111"]}
+        meta["strategies"].append(d)
+    with open(os.path.join(OUT, "strategies.json"), "w", encoding="utf-8") as f:
+        json.dump(meta, f, ensure_ascii=False, indent=2)
+
+    L = []
+    L.append("NQ 日內策略規格書（P_strategist）")
+    L.append("研究用途，不是投資建議。日期：2026-11-12。")
+    L.append(f"策略數：{len(S)}；參數組合總數：{tot}（多重檢定請以此為分母）。")
+    L.append("網路取用限制：本環境 WebFetch 無法連到 luxalgo.com、mql5.com 等網站，來源核對以搜尋結果摘要交叉比對為主；表中網址為搜尋到的出處。")
+    L.append("11/11 推理所用價位以快取 1 分 K（Yahoo）粗算，非正式回測；以回測者結果為準。")
+    L.append(COMMON)
+    L.append("================================================================")
+    L.append("策略總表")
+    L.append("================================================================")
+    for s in S:
+        ps = "；".join(f"{p['name']}∈{p['values']}" for p in s["params_to_explore"])
+        L.append(f"{s['id']} {s['name']}（{s['family']}）  組合 {s['n_combos']}  參數：{ps}")
+    for s in S:
+        L.append("")
+        L.append("================================================================")
+        L.append(f"{s['id']}  {s['name']}　［{s['family']}］")
+        L.append("================================================================")
+        L.append(f"時間框：{s['timeframe']}")
+        L.append(f"進場時間窗（美東）：{s['entry_window_et']}")
+        L.append("定義：")
+        for i, d in enumerate(s["definitions"], 1):
+            L.append(f"  {i}. {d}")
+        L.append(f"進場：{s['entry']}")
+        L.append(f"停損：{s['stop']}")
+        L.append(f"出場：{s['exit']}")
+        L.append("要探索的參數：" + "；".join(f"{p['name']} ∈ {p['values']}" for p in s["params_to_explore"]) + f"（共 {s['n_combos']} 種）")
+        L.append("固定不調：" + "；".join(s["params_fixed"]))
+        L.append(f"交易邏輯：{s['rationale']}")
+        L.append(f"批評／失效情境：{s['critiques']}")
+        L.append("來源：")
+        for u in s["sources"]:
+            L.append(f"  - {u}")
+        L.append(f"2026-11-11 推理：{s['expected_1111']}")
+    L.append("")
+    L.append("================================================================")
+    L.append("給挑戰者／回測者的備註")
+    L.append("================================================================")
+    L.append("1. 與既有研究重疊：S02、S11(N=1)、S15(fail) 和 family.py『掃價位後收回』相近；S12、S13、S16 和 A1／C1／gapgo 相近；S06 用了和 f_family 相同的 ES 資訊。請在報告中標明。")
+    L.append("2. 11/11 粗算結果：獲利的有 S06 SMT（+198 點）、S13 IB 延伸（+112／+225 點）、S03 午夜錨點（+103.5／+236.5 點）、S10 now＋2R（+34 點）；虧損的有 S12 ORB、S15（ON-fail、LON-fail）、S03（0930／0830 錨點）、S04、S07、S09、S14、S01 LON；其餘不交易。單日不代表任何統計意義。")
+    L.append("5. 常見失效：這天是『開盤先殺 227 點、之後整天漲 500 點』的反轉趨勢日。等『回測 OB／FVG／OTE』的方法（S02、S04、S07、S08）大多沒成交或做錯邊；用『反轉確認後市價進場』的方法（S03 午夜、S06、S13）抓到了。")
+    L.append("3. 所有結構停損都『超過 145 點就不做』，不是截斷；回測請另外報告被這條規則刪掉的訊號數。")
+    L.append("4. 限價進場一律用 C9 的『觸價→下一分鐘開盤』近似，結果才唯一。")
+    with open(os.path.join(OUT, "strategies.txt"), "w", encoding="utf-8") as f:
+        f.write("\n".join(L) + "\n")
+    print("strategies:", len(S), "combos:", tot)
+
+
+if __name__ == "__main__":
+    write()
