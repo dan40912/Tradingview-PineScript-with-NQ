@@ -108,6 +108,14 @@ var box    i2TpB  = na        // I2 止盈區（v1 +55）
 var box    i2SlB  = na        // I2 止損區
 var string i2Pnl  = ""
 pnlTxt(x) => str.tostring(x, "+$#,##0;−$#,##0")
+// 清楚訊號：BUY／SELL＋策略＋進場、TP、SL＋原因（計畫外的點顯示「觀察」灰色）
+bsTxt(isBuy, inP, name, e, why) => (inP ? (isBuy ? "BUY  " : "SELL  ") : "觀察（不做）") + name + "\n進 " + fmt(e) + "｜TP " + fmt(isBuy ? e + TP1 : e - TP1) + "｜SL " + fmt(isBuy ? e - SL : e + SL) + "\n" + why
+bsCol(isBuy, inP) => inP ? (isBuy ? color.new(color.green, 0) : color.new(color.red, 0)) : color.new(color.gray, 30)
+resMark(out) => str.startswith(out, "止盈") ? "\n→ ✓ 止盈 +$1,052" : str.startswith(out, "止損") ? "\n→ ✗ 止損 −$2,948" : "\n→ ⏱ " + out
+var string i2Base = ""
+var array<string> refBase = array.new<string>(4, "")
+var array<string> asBase  = array.new<string>(2, "")
+var array<string> xBase   = array.new<string>(2, "")
 // 圖上標籤／方框依交易日登記，只保留最近 keepDays 天（舊的刪掉，避免疊在一起）
 var array<int>   dayQ    = array.new<int>()
 var array<label> keepLbl = array.new<label>()
@@ -542,7 +550,8 @@ if n1 > 0
                 alert("NQ I2 進場 " + (dir == 1 ? "多 " : "空 ") + fmt(ePx) + "｜止損 " + fmt(slPx) + "｜止盈 v1 " + fmt(tp1Px) +
                       (v2ok ? "／v2 " + fmt(tp2Px) : "") + "｜12:29 未結束就出場", alert.freq_all)
             if tfOk
-                i2Lbl := regL(label.new(bar_index, dir == 1 ? l1 : h1, (dir == 1 ? "I2 多 " : "I2 空 ") + fmt(ePx), color=dir == 1 ? color.new(color.green, 0) : color.new(color.red, 0),
+                i2Base := bsTxt(dir == 1, i2InP, "I2 回價值區", ePx, dir == 1 ? "原因：開在價值區下方，2 根 5 分K 收回 VAL " + fmt0(pVAL) + " 之上" : "原因：開在價值區上方，2 根 5 分K 收回 VAH " + fmt0(pVAH) + " 之下")
+                i2Lbl := regL(label.new(bar_index, dir == 1 ? l1 : h1, i2Base, color=bsCol(dir == 1, i2InP),
                           textcolor=color.white, style=dir == 1 ? label.style_label_up : label.style_label_down, size=size.small,
                           tooltip="I2 v1（正式在測的規則）\n進場 " + fmt(ePx) + "\n止盈 " + fmt(tp1Px) + "（+55 點）\n止損 " + fmt(slPx) + "（−145 點）\n12:29（美東）未結束就出場"), d1)
                 // 止盈／止損區（和參考點同樣的畫法，顏色較深），延伸到出場那根
@@ -573,7 +582,7 @@ if n1 > 0
                         planPnl += res1 == "止損" ? -SL * 20 - 48 : res1 == "止盈" ? TP1 * 20 - 48 : dir * (c1 - ePx) * 20 - 48
                         planOpen -= 1
                     if tfOk
-                        label.set_text(i2Lbl, (dir == 1 ? "I2 多 " : "I2 空 ") + fmt(ePx) + (res1 == "止盈" ? " ✓ " : res1 == "止損" ? " ✗ " : " ⏱ ") + i2Pnl)
+                        label.set_text(i2Lbl, i2Base + "\n→ " + (res1 == "止盈" ? "✓ " : res1 == "止損" ? "✗ " : "⏱ ") + res1 + " " + i2Pnl)
                     key = d1 * 10 + 5
                     if lastAlertKey < key
                         lastAlertKey := key
@@ -669,8 +678,10 @@ if n1 > 0
                     array.set(refTxt, r, txt)
                     // 標籤只寫幾個字，完整內容放在提示框（滑鼠移上去或點一下才展開）
                     if tfOk
-                        array.set(refLbl, r, regL(label.new(bar_index, sd == 1 ? l1 : h1, refShort(r) + (withTrend ? "·順" : "·逆"), color=array.get(refInP, r) ? refCol(r) : color.new(color.gray, 25), textcolor=color.white,
-                                  style=sd == 1 ? label.style_label_up : label.style_label_down, size=size.tiny, tooltip=txt), d1))
+                        array.set(refBase, r, bsTxt(sd == 1, pin, refShort(r), o1, r == 0 ? "原因：強壓力 前日高 " + fmt0(pdh) + " 假突破收回" + (withTrend ? "，價格在 VWAP 之下（順勢）" : "，但價格在 VWAP 之上（逆勢）") :
+                                  r == 1 ? "原因：強支撐 前日低 " + fmt0(pdl) + " 破底翻" + (withTrend ? "，價格在 VWAP 之上（順勢）" : "，但價格在 VWAP 之下（逆勢）") : "原因：價值區邊緣回歸"))
+                        array.set(refLbl, r, regL(label.new(bar_index, sd == 1 ? l1 : h1, array.get(refBase, r), color=bsCol(sd == 1, pin), textcolor=color.white,
+                                  style=sd == 1 ? label.style_label_up : label.style_label_down, size=size.small, tooltip=txt), d1))
                         // 止盈／止損區，延伸到出場那根
                         array.set(refTp, r, regB(box.new(bar_index, math.max(o1, o1 + sd * TP1), bar_index, math.min(o1, o1 + sd * TP1),
                                   border_color=color.new(color.green, 60), bgcolor=color.new(color.green, 85)), d1))
@@ -704,7 +715,7 @@ if n1 > 0
                             planPnl += str.startswith(out, "止損") ? -SL * 20 - 48 : str.startswith(out, "止盈") ? TP1 * 20 - 48 : sd * (c1 - e) * 20 - 48
                             planOpen -= 1
                         if tfOk
-                            label.set_text(array.get(refLbl, r), refShort(r) + (str.startswith(out, "止盈") ? " ✓" : str.startswith(out, "止損") ? " ✗" : " ⏱"))
+                            label.set_text(array.get(refLbl, r), array.get(refBase, r) + resMark(out))
                             label.set_tooltip(array.get(refLbl, r), array.get(refTxt, r) + "\n→ " + out)
                         refLast := refShort(r) + " → " + out
 
@@ -757,8 +768,9 @@ if n1 > 0
                     txt = "參考（亞洲盤）：" + asName(r) + " " + fmt(o1) + "\n止盈 " + fmt(o1 + sd * TP1) + "／止損 " + fmt(o1 - sd * SL) + "\n美東 02:59（台灣 " + twAt(year(t1, TZ), month(t1, TZ), dayofmonth(t1, TZ), 2, 59) + "）未結束就出場\n" + asHist(r) + planNote(asInPlan(r), pin, aWhy)
                     array.set(asTxt, r, txt)
                     if tfOk
-                        array.set(asLbl, r, regL(label.new(bar_index, sd == 1 ? l1 : h1, asName(r), color=array.get(asInP, r) ? asCol(r) : color.new(color.gray, 25), textcolor=color.white,
-                                  style=sd == 1 ? label.style_label_up : label.style_label_down, size=size.tiny, tooltip=txt), d1))
+                        array.set(asBase, r, bsTxt(sd == 1, pin, asName(r), o1, r == 0 ? "原因：壓力 前日高 " + fmt0(pdh) + " 亞洲盤假突破收回" : "原因：強支撐 前日低 " + fmt0(pdl) + " 亞洲盤破底翻" + (asiaEs ? "＋ES 同步" : "")))
+                        array.set(asLbl, r, regL(label.new(bar_index, sd == 1 ? l1 : h1, array.get(asBase, r), color=bsCol(sd == 1, pin), textcolor=color.white,
+                                  style=sd == 1 ? label.style_label_up : label.style_label_down, size=size.small, tooltip=txt), d1))
                         array.set(asTp, r, regB(box.new(bar_index, math.max(o1, o1 + sd * TP1), bar_index, math.min(o1, o1 + sd * TP1),
                                   border_color=color.new(color.green, 60), bgcolor=color.new(color.green, 85)), d1))
                         array.set(asSlB, r, regB(box.new(bar_index, math.max(o1, o1 - sd * SL), bar_index, math.min(o1, o1 - sd * SL),
@@ -786,7 +798,7 @@ if n1 > 0
                                 planPnl += str.startswith(out, "止損") ? -SL * 20 - 48 : str.startswith(out, "止盈") ? TP1 * 20 - 48 : sd * (c1 - e) * 20 - 48
                                 planOpen -= 1
                             if tfOk
-                                label.set_text(array.get(asLbl, r), asName(r) + (str.startswith(out, "止盈") ? " ✓" : str.startswith(out, "止損") ? " ✗" : " ⏱"))
+                                label.set_text(array.get(asLbl, r), array.get(asBase, r) + resMark(out))
                                 label.set_tooltip(array.get(asLbl, r), array.get(asTxt, r) + "\n→ " + out)
                             asLast := asName(r) + " → " + out
             // 5 分K 收盤（美東 18:04、18:09 … 01:59）找訊號
@@ -825,8 +837,9 @@ if n1 > 0
                 txt = "新進場點：" + xName(k) + " " + fmt(o1) + "\n止盈 " + fmt(o1 + TP1) + "／止損 " + fmt(o1 - SL) + "\n" + (k == 0 ? "美東 02:59" : "美東 12:29") + " 未結束就出場\n" + xHist(k) + planNote(true, pin, xWhy)
                 array.set(xTxt, k, txt)
                 if tfOk
-                    array.set(xLbl, k, regL(label.new(bar_index, l1, xName(k), color=pin ? color.new(color.teal, 10) : color.new(color.gray, 25), textcolor=color.white,
-                              style=label.style_label_up, size=size.tiny, tooltip=txt), d1))
+                    array.set(xBase, k, bsTxt(true, pin, xName(k), o1, k == 0 ? "原因：支撐 VAL " + fmt0(pVAL) + " 亞洲盤破底翻＋ES 同步" : "原因：強支撐 夜盤低 " + fmt0(onLo) + " 破底翻＋ES 同步"))
+                    array.set(xLbl, k, regL(label.new(bar_index, l1, array.get(xBase, k), color=bsCol(true, pin), textcolor=color.white,
+                              style=label.style_label_up, size=size.small, tooltip=txt), d1))
                     array.set(xTp, k, regB(box.new(bar_index, o1 + TP1, bar_index, o1, border_color=color.new(color.green, 60), bgcolor=color.new(color.green, 85)), d1))
                     array.set(xSlB, k, regB(box.new(bar_index, o1, bar_index, o1 - SL, border_color=color.new(color.red, 70), bgcolor=color.new(color.red, 90)), d1))
                 xLast := xName(k) + " " + fmt(o1) + " 持倉中"
@@ -851,7 +864,7 @@ if n1 > 0
                             planPnl += str.startswith(out, "止損") ? -SL * 20 - 48 : str.startswith(out, "止盈") ? TP1 * 20 - 48 : (c1 - e) * 20 - 48
                             planOpen -= 1
                         if tfOk
-                            label.set_text(array.get(xLbl, k), xName(k) + (str.startswith(out, "止盈") ? " ✓" : str.startswith(out, "止損") ? " ✗" : " ⏱"))
+                            label.set_text(array.get(xLbl, k), array.get(xBase, k) + resMark(out))
                             label.set_tooltip(array.get(xLbl, k), array.get(xTxt, k) + "\n→ " + out)
                         xLast := xName(k) + " → " + out
         // 訊號：NQ 第一次收回時，ES 必須已經（或同一根 5 分K）出現同樣的訊號，否則這次不做（和回測定義相同）
