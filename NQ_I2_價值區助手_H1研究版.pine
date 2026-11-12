@@ -6,6 +6,7 @@
 // v12：沒有訊號時一律灰色，寫「等回區才多／空」並顯示離價值區幾點；只有訊號成立或持倉中才用綠／紅色。
 // v13：新增亞洲盤參考點（美東 18:05～02:00 進場、02:59 出場；台灣在美國冬令時 07:05～15:59、夏令時 06:05～14:59）：掃過前一日盤中高／低後 5 分K 收回 → 反向。只顯示，不是規則。
 // v15：「進場點模式」：計畫內的點用彩色標籤，資訊表顯示今天筆數、已實現損益和每日停損 −$3,000。
+// v17：局勢判斷（日線趨勢只參考、盤中 VWAP、夜盤相對前收、波動倍數）；前高空／前低多只在順盤中趨勢時算計畫內；新增亞洲 VAL 多 ES、早盤夜低多 ES；最近 30 分鐘 5 分鐘波動 ≥ 250 點暫停進場；下單前檢查「今天再虧一筆會不會超過 −$3,000」。docs/23。
 // v16：模式改成三種（docs/21 第 9 節，450 種組合裡四段都賺的 158 種）：推薦（勝率 ≥70% 裡獲利最高：I2＋前高空＋前低多順 I2＋亞洲多 ES）、總獲利最高（再加亞洲空）、勝率最高（只有亞洲多 ES）。前低多只在「只找多」或開在區內的日子算計畫內。
 // v14：亞洲多加上 ES 同步確認（ES 也掃過自己的前日低點並收回，不晚於 NQ 那根 5 分K）；這個版本通過事先登記的篩選，標籤改成青綠色「亞洲多 ES」。
 // 使用方式：NQ 單一合約（例如 NQZ2026），建議開「延長交易時段」。換月當天不要用（凍結規則當天不做 I2）。
@@ -35,9 +36,10 @@ refAlert  = input.bool(false, "參考點也發警報", group="參考點")
 asiaOn    = input.bool(true, "亞洲盤參考點（台灣早上；需要開延長交易時段）", group="參考點")
 asiaEs    = input.bool(true, "亞洲多：要 ES 同步確認（通過驗證的版本）", group="參考點")
 esSym     = input.symbol("CME_MINI:ESZ2026", "ES 合約（和 NQ 同月份）", group="參考點")
-planMode  = input.string("推薦：勝率 70% 以上獲利最高", "進場點模式", options=["推薦：勝率 70% 以上獲利最高", "總獲利最高", "勝率最高（只有亞洲多 ES）"], group="進場計畫")
-maxMode   = planMode == "總獲利最高"
-winMode   = str.startswith(planMode, "勝率最高")
+planMode  = input.string("順勢多點（預設）", "進場點模式", options=["順勢多點（預設）", "高勝率（只做多）"], group="進場計畫")
+winMode   = str.startswith(planMode, "高勝率")
+swanTh    = input.float(250.0, "暴衝暫停：最近 30 分鐘內 5 分鐘波動 ≥（點）", group="進場計畫")
+showVwap  = input.bool(true, "畫 VWAP（美股盤中）", group="進場計畫")
 showRef   = refMode != "關閉"
 refOn(r) => refMode == "全部" or r <= 1   // 區邊回歸（r2、r3）歷史每筆為負，預設不顯示
 
@@ -182,27 +184,96 @@ asName(r) => r == 0 ? "亞洲空" : asiaEs ? "亞洲多 ES" : "亞洲多"
 asHist(r) => r == 0 ? "歷史每筆：−$82（72 筆）｜+$20（33）｜+$350（56）｜+$549（5）\n探索期為負，事先登記的篩選沒有通過" :
               asiaEs ? "歷史每筆（ES 同步）：+$483（32 筆）｜+$273（7）｜+$230（24）｜+$874（3）\n勝率 84%｜71%｜75%｜100%；通過事先登記的篩選" :
                       "歷史每筆：+$385（63 筆）｜−$512（18）｜+$185（56）｜+$485（8）\n2025 下半年為負，事先登記的篩選沒有通過"
-// 進場計畫（docs/21 第 10 節）：I2、前高空、亞洲多 ES 一定在計畫內；最大獲利模式再加前低多、亞洲空。每筆 10 口 MNQ（＝1 口 NQ），每日已實現虧損到 −$2,900 就不再進場
-// 前高空：推薦、總獲利最高；前低多：同上，但開盤「只找空」的日子不算（順著 I2）；亞洲空：只有總獲利最高；亞洲多 ES：三種模式都有；I2：勝率最高模式不算
-refInPlan(r) => not winMode and (r == 0 or (r == 1 and dir != -1))
-asInPlan(r) => (r == 1 and asiaEs) or (r == 0 and maxMode)
+// 進場計畫（docs/23）：順勢多點＝I2、前高空（價格在 VWAP 下方）、前低多（價格在 VWAP 上方）、亞洲多 ES、亞洲 VAL 多 ES、早盤夜低多 ES；高勝率＝I2 多＋三個 ES 做多
+// 每筆 10 口 MNQ（＝1 口 NQ）；亞洲盤做多每晚最多一筆；最近 30 分鐘暴衝 ≥ swanTh 點不進場；今天已實現損益－每筆最壞 $2,948×（持倉數＋1）< −$3,000 就不進場
+refInPlan(r) => not winMode and r <= 1
+asInPlan(r) => r == 1 and asiaEs
 refCol(r) => r == 0 ? color.new(color.maroon, 10) : color.new(color.teal, 10)
 asCol(r) => r == 0 ? color.new(color.maroon, 10) : color.new(color.teal, 10)
-PLAN_STOP = -2900.0
-planShort = maxMode ? "總獲利最高" : winMode ? "勝率最高" : "推薦"
-planNote(inP, pin) => inP ? (pin ? "\n計畫內（" + planShort + "模式，每筆 10 口 MNQ）" : "\n計畫內，但今天已到每日停損，不做") : "\n不在目前的計畫內（只紙上記錄）"
-planTxt = maxMode ? "總獲利最高：I2、前高空、前低多（順 I2）、亞洲空、亞洲多 ES，各 10 口 MNQ｜2024-01～2026-11-10 共 767 筆、勝率 67.9%、合計 +$116,929、最大回撤 −$19,455｜四段 +$67,564／+$1,529／+$40,126／+$7,710" :
-          winMode ? "勝率最高：只有亞洲多 ES，10 口 MNQ｜66 筆、勝率 80.3%、合計 +$25,512、最大回撤 −$6,282｜四段 +$15,464／+$1,914／+$5,513／+$2,621" :
-                  "推薦（勝率 70% 以上裡總獲利最高）：I2、前高空、前低多（順 I2）、亞洲多 ES，各 10 口 MNQ｜2024-01～2026-11-10 共 604 筆、勝率 70.7%、合計 +$102,983、最大回撤 −$18,891｜四段 +$74,502／+$873／+$22,643／+$4,965"
+LOSS_CAP = -3000.0
+FULL_SL  = 2948.0
+planShort = winMode ? "高勝率" : "順勢多點"
+planNote(inP, pin, why) => inP ? (pin ? "\n計畫內（" + planShort + "，每筆 10 口 MNQ）" : "\n計畫內，但" + why + "，不做") : "\n不在目前的計畫內（只紙上記錄）"
+planTxt = winMode ? "高勝率（只做多）：I2 多、亞洲多 ES、亞洲 VAL 多 ES、早盤夜低多 ES，各 10 口 MNQ｜2024-01～2026-11-11 共 253 筆、勝率 77.9%、合計 +$103,666、最大回撤 −$5,896｜2024 +$12,948／2025 +$25,129／2026-1～9 +$53,356／10/1～11/11 +$12,233" :
+                  "順勢多點：I2、前高空（VWAP 下方）、前低多（VWAP 上方）、亞洲多 ES、亞洲 VAL 多 ES、早盤夜低多 ES，各 10 口 MNQ｜2024-01～2026-11-11 共 445 筆、勝率 76.0%、合計 +$153,540、最大回撤 −$12,903｜2024 +$38,937／2025 +$47,395／2026-1～9 +$66,767／10/1～11/11 +$441"
 var float planPnl = 0.0
 var int   planN   = 0
 var int   planDay = 0
+var int   planOpen = 0
 var bool  i2InP   = false
 var array<bool> refInP = array.new<bool>(4, false)
 var array<bool> asInP  = array.new<bool>(2, false)
+var bool  asLongTaken = false
+
+// 局勢（docs/23）
+var float pvSum = 0.0          // 美股盤中 VWAP 累計
+var float vSum  = 0.0
+var float vwNow = na
+var array<float> dCloses = array.new<float>()
+var array<float> dRanges = array.new<float>()
+var float sesClose = na
+var float pdc      = na        // 前一天美股收盤
+var int   dTrend   = 0         // 日線：1 多頭、-1 空頭、0 盤整（只參考）
+var float volScale = na        // 前 10 天美股振幅平均 ÷ 255.2
+var array<float> recentC = array.new<float>()
+var float shockNow = 0.0       // 最近 30 根 1 分K 裡，5 分鐘內最大漲跌幅
+var float onLo  = na           // 美東 18:00～09:29 最低
+var int   onDay = 0
+shockOf(arr) =>
+    n = array.size(arr)
+    mx = 0.0
+    if n >= 6
+        for k = 0 to n - 6
+            mx := math.max(mx, math.abs(array.get(arr, k + 5) - array.get(arr, k)))
+    mx
+gateWhy() => shockNow >= swanTh ? "最近 30 分鐘暴衝 " + str.tostring(shockNow, "#,##0") + " 點" : planPnl - FULL_SL * (planOpen + 1) < LOSS_CAP ? "今天再虧一筆會超過 −$3,000" : ""
+// 用成交量分布算價值區（和 I2 相同算法，ES 也用 5 點一格）
+vaCalc(map<int, float> pr) =>
+    keys = map.keys(pr)
+    array.sort(keys, order.ascending)
+    kMin = array.get(keys, 0)
+    kMax = array.get(keys, array.size(keys) - 1)
+    total = 0.0
+    poc = kMin
+    pocV = -1.0
+    for i = 0 to array.size(keys) - 1
+        k = array.get(keys, i)
+        v = map.get(pr, k)
+        total += v
+        if v > pocV
+            pocV := v
+            poc := k
+    lo = poc
+    hi = poc
+    acc = pocV
+    while acc < VA_FRAC * total and (lo > kMin or hi < kMax)
+        lv = map.contains(pr, lo - 1) ? map.get(pr, lo - 1) : -1.0
+        hv = map.contains(pr, hi + 1) ? map.get(pr, hi + 1) : -1.0
+        if hv > lv
+            hi += 1
+            acc += math.max(0.0, hv)
+        else
+            lo -= 1
+            acc += math.max(0.0, lv)
+    [lo * BIN, poc * BIN, (hi + 1) * BIN]
+
+// 新進場點（docs/22、23）：0 亞洲 VAL 多 ES、1 早盤夜低多 ES（美盤早上掃夜盤低點後收回，波動 ≥ 1.2 倍）
+var array<int>    xSt   = array.new<int>(2, 0)
+var array<int>    xSigT = array.new<int>(2, 0)
+var array<float>  xE    = array.new<float>(2, na)
+var array<label>  xLbl  = array.new<label>(2, na)
+var array<box>    xTp   = array.new<box>(2, na)
+var array<box>    xSlB  = array.new<box>(2, na)
+var array<string> xTxt  = array.new<string>(2, "")
+var array<bool>   xInP  = array.new<bool>(2, false)
+var int    xDay  = 0
+var string xLast = "—"
+xName(k) => k == 0 ? "亞洲VAL多 ES" : "早盤夜低多 ES"
+xHist(k) => k == 0 ? "歷史每筆（ES 同步）：2024 +$407（15 筆、80%）｜2025 +$222（33、70%）｜2026-1～9 +$553（39、79%）｜10/1～11/11 +$562（4、75%）" :
+                     "歷史每筆（ES 同步、波動 ≥1.2 倍）：2024 +$383（9 筆、67%）｜2025 +$128（24、75%）｜2026-1～9 +$539（32、84%）｜10/1～11/11 +$1,052（4、100%）"
 
 // ES 同步確認：ES 自己的前一日盤中高／低、美東 18:00 起的最低價、亞洲多訊號
-[eT, eH, eL, eC] = request.security_lower_tf(esSym, "1", [time, high, low, close])
+[eT, eH, eL, eC, eV] = request.security_lower_tf(esSym, "1", [time, high, low, close, volume])
 var float esSesHi = na
 var float esSesLo = na
 var bool  esInRth = false
@@ -210,6 +281,12 @@ var float esPdl   = na
 var float esAsLo  = na
 var int   esDay   = 0
 var int   esSigT  = 0        // ES 亞洲多訊號那根 1 分K 的時間；0＝今晚還沒有
+var map<int, float> esProf = map.new<int, float>()
+var float esVAL    = na       // ES 前一日價值區下緣
+var int   esVaSigT = 0        // ES 亞洲 VAL 多訊號時間
+var float esOnLo   = na       // ES 美東 18:00～09:29 最低
+var float esRthLo  = na       // ES 美股盤中（09:30 起）最低
+var int   esOnSigT = 0        // ES 早盤夜低多訊號時間
 nE = array.size(eT)
 if nE > 0
     for j = 0 to nE - 1
@@ -217,6 +294,7 @@ if nE > 0
         hE = array.get(eH, j)
         lE = array.get(eL, j)
         cE = array.get(eC, j)
+        vE = array.get(eV, j)
         mE = minOf(tE)
         dE = ymdOf(tE)
         okE1 = barstate.isconfirmed or j < nE - 1 or timenow >= tE + 60000
@@ -225,6 +303,19 @@ if nE > 0
             if esInRth and not rthE
                 esPdl := esSesLo
                 esInRth := false
+                if map.size(esProf) > 0
+                    [eVal, ePoc, eVah] = vaCalc(esProf)
+                    esVAL := eVal
+                map.clear(esProf)
+            if rthE
+                aE = int(math.floor(lE / BIN))
+                bE = int(math.floor(hE / BIN))
+                for k = aE to bE
+                    map.put(esProf, k, (map.contains(esProf, k) ? map.get(esProf, k) : 0.0) + vE / (bE - aE + 1))
+                if mE == 570 or na(esRthLo)
+                    esRthLo := lE
+                else
+                    esRthLo := math.min(esRthLo, lE)
             if rthE
                 if not esInRth
                     esSesHi := hE
@@ -237,8 +328,23 @@ if nE > 0
                 esDay := dE
                 esAsLo := lE
                 esSigT := 0
-            else if (mE >= 1080 or mE <= 179) and not na(esAsLo)
-                esAsLo := math.min(esAsLo, lE)
+                esVaSigT := 0
+                esOnLo := lE
+                esOnSigT := 0
+                esRthLo := na
+            else
+                if (mE >= 1080 or mE <= 179) and not na(esAsLo)
+                    esAsLo := math.min(esAsLo, lE)
+                if (mE >= 1080 or mE < 570) and not na(esOnLo)
+                    esOnLo := math.min(esOnLo, lE)
+            if mE % 5 == 4 and (mE >= 1084 or mE <= 119) and esVaSigT == 0 and not na(esVAL) and not na(esAsLo)
+                if esAsLo < esVAL and cE > esVAL
+                    esVaSigT := tE
+            // ES 早盤夜低多：09:34～11:29 的 5 分K（進場 09:35～11:30，09:58～10:02 不進場）
+            eiE = mE + 1 - 570
+            if mE % 5 == 4 and mE >= 574 and mE <= 689 and not (eiE >= 28 and eiE <= 32) and esOnSigT == 0 and not na(esOnLo) and not na(esRthLo)
+                if esRthLo < esOnLo and cE > esOnLo
+                    esOnSigT := tE
             if mE % 5 == 4 and (mE >= 1084 or mE <= 119) and esSigT == 0 and not na(esPdl) and not na(esAsLo)
                 if esAsLo < esPdl and cE > esPdl
                     esSigT := tE
@@ -258,6 +364,12 @@ if n1 > 0
         rth1 = m1 >= 570 and m1 <= 959
         i1   = m1 - 570
         closed1 = barstate.isconfirmed or j < n1 - 1 or timenow >= t1 + 60000
+        // 局勢：盤中 VWAP 用到前一分鐘為止；暴衝幅度用前 30 根 1 分K
+        if m1 == 570
+            pvSum := 0.0
+            vSum := 0.0
+        vwPrev = vSum > 0 ? pvSum / vSum : na
+        shockNow := shockOf(recentC)
 
         // 前一個盤中時段結束 → 算出價值區
         if not na(profDate) and (not rth1 or d1 != profDate) and map.size(prof) > 0
@@ -292,6 +404,27 @@ if n1 > 0
             pVAH := (hi + 1) * BIN
             pdh  := sesHi
             pdl  := sesLo
+            // 日線趨勢（只參考）與波動倍數
+            array.push(dCloses, sesClose)
+            array.push(dRanges, sesHi - sesLo)
+            pdc := sesClose
+            nC = array.size(dCloses)
+            if nC >= 25
+                s0 = 0.0
+                s5 = 0.0
+                for k = 0 to 19
+                    s0 += array.get(dCloses, nC - 1 - k)
+                    s5 += array.get(dCloses, nC - 6 - k)
+                s0 := s0 / 20
+                s5 := s5 / 20
+                lastC = array.get(dCloses, nC - 1)
+                dTrend := lastC > s0 and s0 > s5 ? 1 : lastC < s0 and s0 < s5 ? -1 : 0
+            nR = array.size(dRanges)
+            if nR >= 10
+                sr = 0.0
+                for k = 0 to 9
+                    sr += array.get(dRanges, nR - 1 - k)
+                volScale := sr / 10 / 255.2
             map.clear(prof)
             profDate := na
             status := "等待下一個交易日開盤"
@@ -306,6 +439,7 @@ if n1 > 0
             else
                 sesHi := math.max(sesHi, h1)
                 sesLo := math.min(sesLo, l1)
+            sesClose := c1
             a = int(math.floor(l1 / BIN))
             b = int(math.floor(h1 / BIN))
             nb = b - a + 1
@@ -397,9 +531,10 @@ if n1 > 0
             slPx  := o1 - dir * SL
             st    := 2
             st2   := v2ok ? 2 : 0
-            i2InP := not winMode and planPnl > PLAN_STOP
+            i2InP := (not winMode or dir == 1) and gateWhy() == ""
             if i2InP
                 planN += 1
+                planOpen += 1
             status := "已進場" + (dir == 1 ? "多" : "空") + "，持倉中"
             key = d1 * 10 + 4
             if lastAlertKey < key
@@ -436,6 +571,7 @@ if n1 > 0
                 if st == 3
                     if i2InP
                         planPnl += res1 == "止損" ? -SL * 20 - 48 : res1 == "止盈" ? TP1 * 20 - 48 : dir * (c1 - ePx) * 20 - 48
+                        planOpen -= 1
                     if tfOk
                         label.set_text(i2Lbl, (dir == 1 ? "I2 多 " : "I2 空 ") + fmt(ePx) + (res1 == "止盈" ? " ✓ " : res1 == "止損" ? " ✗ " : " ⏱ ") + i2Pnl)
                     key = d1 * 10 + 5
@@ -521,15 +657,19 @@ if n1 > 0
                     array.set(refE, r, o1)
                     array.set(refSt, r, 2)
                     refCount += 1
-                    pin = refInPlan(r) and planPnl > PLAN_STOP
+                    // 盤中順勢：做多時價格在 VWAP 之上、做空時在 VWAP 之下（docs/23：順勢勝率 70～82%、逆勢 59～64%）
+                    withTrend = not na(vwPrev) and (sd == 1 ? o1 > vwPrev : o1 < vwPrev)
+                    rWhy = withTrend ? gateWhy() : "逆盤中趨勢（價格在 VWAP " + (sd == 1 ? "之下" : "之上") + "）"
+                    pin = refInPlan(r) and rWhy == ""
                     array.set(refInP, r, pin)
                     if pin
                         planN += 1
-                    txt = "參考：" + refName(r) + " " + fmt(o1) + "\n止盈 " + fmt(o1 + sd * TP1) + "／止損 " + fmt(o1 - sd * SL) + "\n" + refHist(r, dir != 0) + planNote(refInPlan(r), pin)
+                        planOpen += 1
+                    txt = "參考：" + refName(r) + " " + fmt(o1) + (withTrend ? "（順盤中趨勢）" : "（逆盤中趨勢）") + "\n止盈 " + fmt(o1 + sd * TP1) + "／止損 " + fmt(o1 - sd * SL) + "\n" + refHist(r, dir != 0) + planNote(refInPlan(r), pin, rWhy)
                     array.set(refTxt, r, txt)
                     // 標籤只寫幾個字，完整內容放在提示框（滑鼠移上去或點一下才展開）
                     if tfOk
-                        array.set(refLbl, r, regL(label.new(bar_index, sd == 1 ? l1 : h1, refShort(r), color=array.get(refInP, r) ? refCol(r) : color.new(color.gray, 25), textcolor=color.white,
+                        array.set(refLbl, r, regL(label.new(bar_index, sd == 1 ? l1 : h1, refShort(r) + (withTrend ? "·順" : "·逆"), color=array.get(refInP, r) ? refCol(r) : color.new(color.gray, 25), textcolor=color.white,
                                   style=sd == 1 ? label.style_label_up : label.style_label_down, size=size.tiny, tooltip=txt), d1))
                         // 止盈／止損區，延伸到出場那根
                         array.set(refTp, r, regB(box.new(bar_index, math.max(o1, o1 + sd * TP1), bar_index, math.min(o1, o1 + sd * TP1),
@@ -562,6 +702,7 @@ if n1 > 0
                         array.set(refSt, r, 3)
                         if array.get(refInP, r)
                             planPnl += str.startswith(out, "止損") ? -SL * 20 - 48 : str.startswith(out, "止盈") ? TP1 * 20 - 48 : sd * (c1 - e) * 20 - 48
+                            planOpen -= 1
                         if tfOk
                             label.set_text(array.get(refLbl, r), refShort(r) + (str.startswith(out, "止盈") ? " ✓" : str.startswith(out, "止損") ? " ✗" : " ⏱"))
                             label.set_tooltip(array.get(refLbl, r), array.get(refTxt, r) + "\n→ " + out)
@@ -573,6 +714,14 @@ if n1 > 0
             planDay := tdKey
             planPnl := 0.0
             planN := 0
+            planOpen := 0
+            asLongTaken := false
+        // 夜盤最低（美東 18:00～09:29）
+        if closed1 and m1 >= 1080 and onDay != d1
+            onDay := d1
+            onLo := l1
+        else if closed1 and (m1 >= 1080 or m1 < 570) and not na(onLo)
+            onLo := math.min(onLo, l1)
 
         // ---------- 亞洲盤參考點（美東 18:00～02:59）：掃過前一日盤中高／低後，5 分K 收回 → 反向；+55／−145、02:59 出場 ----------
         inAsia = m1 >= 1080 or m1 <= 179
@@ -597,11 +746,15 @@ if n1 > 0
                     array.set(asSt, r, 2)
                     s := 2
                     asCount += 1
-                    pin = asInPlan(r) and planPnl > PLAN_STOP
+                    aWhy = r == 1 and asLongTaken ? "今晚已經有一筆亞洲做多" : gateWhy()
+                    pin = asInPlan(r) and aWhy == ""
                     array.set(asInP, r, pin)
                     if pin
                         planN += 1
-                    txt = "參考（亞洲盤）：" + asName(r) + " " + fmt(o1) + "\n止盈 " + fmt(o1 + sd * TP1) + "／止損 " + fmt(o1 - sd * SL) + "\n美東 02:59（台灣 " + twAt(year(t1, TZ), month(t1, TZ), dayofmonth(t1, TZ), 2, 59) + "）未結束就出場\n" + asHist(r) + planNote(asInPlan(r), pin)
+                        planOpen += 1
+                        if r == 1
+                            asLongTaken := true
+                    txt = "參考（亞洲盤）：" + asName(r) + " " + fmt(o1) + "\n止盈 " + fmt(o1 + sd * TP1) + "／止損 " + fmt(o1 - sd * SL) + "\n美東 02:59（台灣 " + twAt(year(t1, TZ), month(t1, TZ), dayofmonth(t1, TZ), 2, 59) + "）未結束就出場\n" + asHist(r) + planNote(asInPlan(r), pin, aWhy)
                     array.set(asTxt, r, txt)
                     if tfOk
                         array.set(asLbl, r, regL(label.new(bar_index, sd == 1 ? l1 : h1, asName(r), color=array.get(asInP, r) ? asCol(r) : color.new(color.gray, 25), textcolor=color.white,
@@ -631,6 +784,7 @@ if n1 > 0
                             array.set(asSt, r, 3)
                             if array.get(asInP, r)
                                 planPnl += str.startswith(out, "止損") ? -SL * 20 - 48 : str.startswith(out, "止盈") ? TP1 * 20 - 48 : sd * (c1 - e) * 20 - 48
+                                planOpen -= 1
                             if tfOk
                                 label.set_text(array.get(asLbl, r), asName(r) + (str.startswith(out, "止盈") ? " ✓" : str.startswith(out, "止損") ? " ✗" : " ⏱"))
                                 label.set_tooltip(array.get(asLbl, r), array.get(asTxt, r) + "\n→ " + out)
@@ -647,6 +801,75 @@ if n1 > 0
                     array.set(asSigT, 1, t1)
                     if not esOk
                         asLast := "亞洲多：ES 沒有同步，今晚不做"
+
+        // ---------- 新進場點：0 亞洲 VAL 多 ES（美東 18:05～02:00、02:59 出場）、1 早盤夜低多 ES（09:35～11:30、12:29 出場）----------
+        if closed1 and m1 >= 1080 and xDay != d1
+            xDay := d1
+            array.set(xSt, 0, 0)
+        if m1 == 570
+            array.set(xSt, 1, 0)
+        for k = 0 to 1
+            s = array.get(xSt, k)
+            if s == 1 and t1 > array.get(xSigT, k)
+                array.set(xE, k, o1)
+                array.set(xSt, k, 2)
+                s := 2
+                xWhy = k == 0 and asLongTaken ? "今晚已經有一筆亞洲做多" : k == 1 and (na(volScale) or volScale < 1.2) ? "波動不到 1.2 倍" : gateWhy()
+                pin = xWhy == ""
+                array.set(xInP, k, pin)
+                if pin
+                    planN += 1
+                    planOpen += 1
+                    if k == 0
+                        asLongTaken := true
+                txt = "新進場點：" + xName(k) + " " + fmt(o1) + "\n止盈 " + fmt(o1 + TP1) + "／止損 " + fmt(o1 - SL) + "\n" + (k == 0 ? "美東 02:59" : "美東 12:29") + " 未結束就出場\n" + xHist(k) + planNote(true, pin, xWhy)
+                array.set(xTxt, k, txt)
+                if tfOk
+                    array.set(xLbl, k, regL(label.new(bar_index, l1, xName(k), color=pin ? color.new(color.teal, 10) : color.new(color.gray, 25), textcolor=color.white,
+                              style=label.style_label_up, size=size.tiny, tooltip=txt), d1))
+                    array.set(xTp, k, regB(box.new(bar_index, o1 + TP1, bar_index, o1, border_color=color.new(color.green, 60), bgcolor=color.new(color.green, 85)), d1))
+                    array.set(xSlB, k, regB(box.new(bar_index, o1, bar_index, o1 - SL, border_color=color.new(color.red, 70), bgcolor=color.new(color.red, 90)), d1))
+                xLast := xName(k) + " " + fmt(o1) + " 持倉中"
+                if refAlert
+                    alert("NQ 新進場點：" + xName(k) + " 做多 " + fmt(o1) + "｜止盈 " + fmt(o1 + TP1) + "／止損 " + fmt(o1 - SL) + (pin ? "｜計畫內" : "｜不做：" + xWhy), alert.freq_all)
+            if s == 2
+                if tfOk
+                    box.set_right(array.get(xTp, k), bar_index)
+                    box.set_right(array.get(xSlB, k), bar_index)
+                if closed1
+                    e = array.get(xE, k)
+                    out = ""
+                    if l1 <= e - SL
+                        out := "止損 −$2,948"
+                    else if h1 >= e + TP1
+                        out := "止盈 +$1,052"
+                    else if (k == 0 and m1 >= 179 and m1 < 1080) or (k == 1 and rth1 and i1 >= 179)
+                        out := "時間到 " + str.tostring((c1 - e) * 20 - 48, "+#,##0;−#,##0")
+                    if out != ""
+                        array.set(xSt, k, 3)
+                        if array.get(xInP, k)
+                            planPnl += str.startswith(out, "止損") ? -SL * 20 - 48 : str.startswith(out, "止盈") ? TP1 * 20 - 48 : (c1 - e) * 20 - 48
+                            planOpen -= 1
+                        if tfOk
+                            label.set_text(array.get(xLbl, k), xName(k) + (str.startswith(out, "止盈") ? " ✓" : str.startswith(out, "止損") ? " ✗" : " ⏱"))
+                            label.set_tooltip(array.get(xLbl, k), array.get(xTxt, k) + "\n→ " + out)
+                        xLast := xName(k) + " → " + out
+        // 訊號：NQ 第一次收回時，ES 必須已經（或同一根 5 分K）出現同樣的訊號，否則這次不做（和回測定義相同）
+        if closed1 and m1 % 5 == 4 and (m1 >= 1084 or m1 <= 119) and array.get(xSt, 0) == 0 and not na(pVAL) and not na(onLo)
+            if onLo < pVAL and c1 > pVAL
+                okX = esVaSigT > 0 and esVaSigT <= t1
+                array.set(xSt, 0, okX ? 1 : 3)
+                array.set(xSigT, 0, t1)
+                if not okX
+                    xLast := "亞洲 VAL 多：ES 沒有同步，今晚不做"
+        eiX = i1 + 1
+        if closed1 and rth1 and i1 % 5 == 4 and i1 >= 4 and i1 <= 119 and not (eiX >= 28 and eiX <= 32) and array.get(xSt, 1) == 0 and not na(onLo) and not na(dayLo)
+            if dayLo < onLo and c1 > onLo
+                okX = esOnSigT > 0 and esOnSigT <= t1
+                array.set(xSt, 1, okX ? 1 : 3)
+                array.set(xSigT, 1, t1)
+                if not okX
+                    xLast := "早盤夜低多：ES 沒有同步，今天不做"
 
         // 查看過去某一天：在那天 16:00 前存下狀態
         if viewOn and d1 == viewYmd and m1 <= 959
@@ -665,6 +888,16 @@ if n1 > 0
             vH1 := h1Dist
             vH1Ok := h1Ok
             vLean := leanDir
+
+        // 這一分鐘處理完才更新 VWAP 和暴衝用的收盤序列（下一分鐘進場時用）
+        if closed1
+            if rth1
+                pvSum += (h1 + l1 + c1) / 3 * v1
+                vSum += v1
+                vwNow := pvSum / vSum
+            array.push(recentC, c1)
+            if array.size(recentC) > 30
+                array.shift(recentC)
 
 // ---------- 盤前預判（只是提示；正式方向以 09:30 開盤價為準） ----------
 // 歷史（2024-01～2026-10，683 個可交易日）：美東 09:00 時價格在 VAL 下方 → 97% 開盤也在下方；在 VAH 上方 → 90%；在區內 → 86%。
@@ -687,6 +920,7 @@ fill(pH, pL, color=bandCol, title="價值區底色（綠／紅＝訊號成立或
 plot(brk ? na : pPOC, "POC", color=color.new(color.gray, 30), linewidth=1, style=plot.style_linebr)
 plot(brk ? na : pdh, "前一日盤中高", color=color.new(color.red, 40), linewidth=1, style=plot.style_circles)
 plot(brk ? na : pdl, "前一日盤中低", color=color.new(color.green, 40), linewidth=1, style=plot.style_circles)
+plot(showVwap and isRth ? vwNow : na, "VWAP（美股盤中）", color=color.new(color.purple, 10), linewidth=1, style=plot.style_linebr)
 showLv = isRth and idx <= 179 and (st == 2 or st2 == 2 or st == 3)
 // v1 的進場／止盈／止損改成方框（畫在進場那段）；v2 的 +80 止盈仍用虛線，只畫在圖上、不顯示在右側價格刻度
 plot(showLv and showV2 and v2ok ? tp2Px : na, "止盈 v2", color=color.new(color.lime, 0), style=plot.style_linebr, display=display.pane)
@@ -717,7 +951,14 @@ bgcolor(isRth and idx >= 28 and idx <= 32 ? color.new(color.gray, 85) : na, titl
 bgcolor(isRth and idx >= 5 and idx <= LAST_V2 ? color.new(color.blue, 95) : isRth and idx > LAST_V2 and idx <= LAST_V1 ? color.new(color.purple, 96) : na, title="進場時段（藍＝v1+v2、紫＝只有 v1）")
 
 tPos = tblPos == "右上" ? position.top_right : tblPos == "左下" ? position.bottom_left : tblPos == "左上" ? position.top_left : position.bottom_right
-var table t = table.new(tPos, 2, 20, bgcolor=color.new(color.black, 20), border_width=1)
+// 局勢文字（資訊表用）
+intraDir = isRth and not na(vwNow) ? (close > vwNow ? 1 : -1) : 0
+regimeTxt = "盤中 " + (intraDir == 1 ? "VWAP 之上 → 只做多" : intraDir == -1 ? "VWAP 之下 → 只做空" : "未開盤") +
+             "｜日線 " + (dTrend == 1 ? "多頭" : dTrend == -1 ? "空頭" : "盤整") + "（只參考）" +
+             "｜夜盤 " + (na(pdc) ? "—" : close > pdc ? "高於前收 " + fmt0(close - pdc) : "低於前收 " + fmt0(pdc - close)) +
+             "｜波動 " + (na(volScale) ? "—" : str.tostring(volScale, "#.0") + " 倍")
+alertTxt = shockNow >= swanTh ? "暴衝 " + fmt0(shockNow) + " 點：暫停進場" : (not na(volScale) and volScale >= 2.0) ? "高波動 " + str.tostring(volScale, "#.0") + " 倍：口數建議減半" : "正常"
+var table t = table.new(tPos, 2, 24, bgcolor=color.new(color.black, 20), border_width=1)
 
 // 精簡模式：三行白話
 if tblMode == "精簡" and barstate.islast
@@ -766,8 +1007,15 @@ if tblMode == "精簡" and barstate.islast
         table.cell(t, 1, 5, "這個週期不畫標籤：請改用 1～15 分K", text_color=color.white, bgcolor=color.new(color.red, 0), text_size=size.normal)
     if not viewOn
         table.cell(t, 0, 7, "計畫", text_color=color.white, text_size=size.small)
-        table.cell(t, 1, 7, planShort + "｜今天 " + str.tostring(planN) + " 筆｜已實現 " + pnlTxt(planPnl) + (planPnl <= PLAN_STOP ? "｜已到每日停損，今天不再進場" : ""),
-                   text_color=color.white, bgcolor=planPnl <= PLAN_STOP ? color.new(color.red, 30) : color.new(color.gray, 50), text_size=size.small, tooltip=planTxt + "\n彩色標籤＝計畫內的點；灰色＝不在計畫內。每筆 10 口 MNQ，止盈 +$1,052、止損 −$2,948（已扣成本）。")
+        table.cell(t, 1, 7, planShort + "｜今天 " + str.tostring(planN) + " 筆｜已實現 " + pnlTxt(planPnl) + ((planPnl - FULL_SL * (planOpen + 1) < LOSS_CAP) ? "｜再虧一筆會超過 −$3,000，今天不再進場" : ""),
+                   text_color=color.white, bgcolor=(planPnl - FULL_SL * (planOpen + 1) < LOSS_CAP) ? color.new(color.red, 30) : color.new(color.gray, 50), text_size=size.small, tooltip=planTxt + "\n彩色標籤＝計畫內的點；灰色＝不在計畫內。每筆 10 口 MNQ，止盈 +$1,052、止損 −$2,948（已扣成本）。")
+    if not viewOn
+        table.cell(t, 0, 8, "局勢", text_color=color.white, text_size=size.small)
+        table.cell(t, 1, 8, regimeTxt, text_color=color.white, bgcolor=intraDir == 1 ? color.new(color.teal, 55) : intraDir == -1 ? color.new(color.maroon, 55) : color.new(color.gray, 60), text_size=size.small,
+                   tooltip="盤中（美股）：價格在 VWAP 之上只做多、之下只做空（前高空、前低多照這個過濾）。\n日線趨勢只參考：歷史上順著日線做沒有比較好（docs/23）。\n夜盤：價格相對前一天美股收盤。")
+        table.cell(t, 0, 9, "警戒", text_color=color.white, text_size=size.small)
+        table.cell(t, 1, 9, alertTxt, text_color=color.white, bgcolor=shockNow >= swanTh ? color.new(color.red, 20) : (not na(volScale) and volScale >= 2.0) ? color.new(color.orange, 30) : color.new(color.gray, 60), text_size=size.small,
+                   tooltip="暴衝：最近 30 分鐘內 5 分鐘漲跌 ≥ " + str.tostring(swanTh, "#") + " 點就不進場（歷史上這時進場的單平均虧錢）。\n高波動：前 10 天振幅 ≥ 2 倍時，口數建議減半。\n黑天鵝：所有單都不抱過收盤；停損一定要掛在券商。")
     if asiaOn and not viewOn
         table.cell(t, 0, 6, "亞洲盤", text_color=color.white, text_size=size.small)
         table.cell(t, 1, 6, (asCount == 0 ? "還沒有" : str.tostring(asCount) + " 個｜" + asLast) + "｜進場台灣 " + twAt(y0, mo0, d0, 18, 5) + "～" + twAt(y0, mo0, d0, 2, 0),
@@ -843,8 +1091,14 @@ if tblMode == "完整" and barstate.islast
         table.cell(t, 1, 17, (viewOn ? "看圖上灰色標籤" : refCount == 0 ? "今天還沒有" : str.tostring(refCount) + " 個｜最近：" + refLast) +
                    "｜前高假突破空、前低假突破多、區邊回歸（只在開在區內的日子）；+55／−145、12:29 出場；不是規則，歷史表現寫在標籤上",
                    text_color=color.white, bgcolor=color.new(color.gray, 60), text_size=size.small)
+    table.cell(t, 0, 20, "局勢", text_color=color.white, text_size=size.small)
+    table.cell(t, 1, 20, regimeTxt, text_color=color.white, bgcolor=intraDir == 1 ? color.new(color.teal, 55) : intraDir == -1 ? color.new(color.maroon, 55) : color.new(color.gray, 60), text_size=size.small)
+    table.cell(t, 0, 21, "警戒", text_color=color.white, text_size=size.small)
+    table.cell(t, 1, 21, alertTxt, text_color=color.white, bgcolor=shockNow >= swanTh ? color.new(color.red, 20) : (not na(volScale) and volScale >= 2.0) ? color.new(color.orange, 30) : color.new(color.gray, 60), text_size=size.small)
+    table.cell(t, 0, 22, "新進場點", text_color=color.white, text_size=size.small)
+    table.cell(t, 1, 22, xLast + "｜亞洲 VAL 多 ES、早盤夜低多 ES（ES 同步才做）", text_color=color.white, bgcolor=color.new(color.gray, 60), text_size=size.small)
     table.cell(t, 0, 19, "計畫", text_color=color.white, text_size=size.small)
-    table.cell(t, 1, 19, (viewOn ? "（查看過去模式不計算）" : "今天 " + str.tostring(planN) + " 筆｜已實現 " + pnlTxt(planPnl) + (planPnl <= PLAN_STOP ? "｜已到每日停損" : "")) + "｜" + planTxt,
+    table.cell(t, 1, 19, (viewOn ? "（查看過去模式不計算）" : "今天 " + str.tostring(planN) + " 筆｜已實現 " + pnlTxt(planPnl) + ((planPnl - FULL_SL * (planOpen + 1) < LOSS_CAP) ? "｜再虧一筆會超過 −$3,000" : "")) + "｜" + planTxt,
                text_color=color.white, bgcolor=color.new(color.gray, 60), text_size=size.small)
     if asiaOn
         table.cell(t, 0, 18, "亞洲盤", text_color=color.silver, text_size=size.small)
