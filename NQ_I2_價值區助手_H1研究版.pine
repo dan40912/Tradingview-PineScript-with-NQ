@@ -445,7 +445,7 @@ if n1 > 0
         vwPrev = vSum > 0 ? pvSum / vSum : na
         shockNow := shockOf(recentC)
         // 5 分K：新的 5 分鐘開始時，先把上一根收掉並更新指標（只用已收盤的 1 分K）
-        bk = d1 * 1000 + int(m1 / 5)
+        bk = (d1 % 100000) * 1000 + int(m1 / 5)   // 只要相鄰的 5 分鐘能分辨就好；用日期後 5 碼避免整數太大
         if not na(b5Key) and bk != b5Key and not na(b5C)
             tr5 = na(pc5) ? b5H - b5L : math.max(b5H - b5L, math.abs(b5H - pc5), math.abs(b5L - pc5))
             upm = na(ph5) ? na : b5H - ph5
