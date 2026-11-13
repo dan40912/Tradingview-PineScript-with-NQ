@@ -285,6 +285,7 @@ H1 是一個還在研究中的過濾條件：**開盤價離價值區邊界太遠
 4. 想收到警報的話：建立快訊，條件選這個指標，再選「任何 alert() 函數呼叫」。
 
 本資料夾還有：
+- [`tradovate/NQ_順勢多點_Tradovate.js`](tradovate/NQ_順勢多點_Tradovate.js)：**Tradovate 版**（JavaScript 自訂指標，要用 1 分鐘圖；ES 用另一張圖手動對照）。安裝、差別和回測見 [`tradovate/README.md`](tradovate/README.md)。
 - [`NQ_I2_價值區助手.pine`](NQ_I2_價值區助手.pine)：基本版，沒有 H1 欄位。
 - [`NQ_I2_15分K參考版.pine`](NQ_I2_15分K參考版.pine)：15 分 K 版本，只供參考，回測較差。
 
