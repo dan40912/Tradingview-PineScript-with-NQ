@@ -193,7 +193,7 @@ class NQPlan {
 
         // 收盤後才更新：VWAP、暴衝序列、5 分K
         if (rth) { this.pv += (h + l + c) / 3 * v; this.vv += v; }
-        this.recent.push(c); if (this.recent.length > 30) this.recent.shift();
+        this.recent.push({ ms: ms, c: c }); if (this.recent.length > 30) this.recent.shift();
         if (!this.b5) this.b5 = { key: bk, h: h, l: l, c: c };
         else { this.b5.h = Math.max(this.b5.h, h); this.b5.l = Math.min(this.b5.l, l); this.b5.c = c; }
         if (m % 5 === 4) { this.close5(this.b5); this.b5 = null; }   // 這根 5 分K 最後一分鐘：馬上收掉（10:00 判斷 TD10 要用）
@@ -221,7 +221,8 @@ class NQPlan {
     }
 
     adr10() { const r = this.ranges; if (r.length < 10) return NaN; let s = 0; for (let j = r.length - 10; j < r.length; j++) s += r[j]; return s / 10; }
-    shock() { const w = this.recent; let mx = 0; for (let j = 0; j + 5 < w.length; j++) mx = Math.max(mx, Math.abs(w[j + 5] - w[j])); return mx; }
+    // 最近 30 分鐘（時鐘時間，所以 18:00 開盤不會算到 17:00 前的價格）裡，相隔 5 根的最大漲跌
+    shock(nowMs) { const w = this.recent.filter((x) => x.ms >= nowMs - 30 * 60000); let mx = 0; for (let j = 0; j + 5 < w.length; j++) mx = Math.max(mx, Math.abs(w[j + 5].c - w[j].c)); return mx; }
 
     // ---------- 09:30：I2 方向、當天狀態、標頭文字 ----------
     newRthDay(d, i, o, h, l, ymd) {
@@ -368,7 +369,7 @@ class NQPlan {
                     t.why += withT ? "，價格在 VWAP " + (t.dir === 1 ? "之上" : "之下") + "（順勢）" : "，但價格在 VWAP " + (t.dir === 1 ? "之下" : "之上") + "（逆勢）";
                     if (!withT) why = "逆盤中趨勢";
                 }
-                const sh = this.shock();
+                const sh = this.shock(msOf(d) - (this.props.tsIsClose ? 60000 : 0));
                 if (!why && sh >= this.props.swanTh) why = "最近 30 分鐘暴衝 " + f0(sh) + " 點";
                 if (!why && this.plan.pnl - 2948 * (this.plan.open + 1) < -3000) why = "今天再虧一筆會超過 −$3,000";
                 t.inPlan = !why;
@@ -388,7 +389,7 @@ class NQPlan {
                 this.add(i, { tag: "Text", key: "e" + t.id + "_" + j, point: { x: du(i), y: op(y0, step, px(off)) }, text: ln[0], style: { fontSize: ln[1], fontWeight: ln[3], fill: ln[2] }, textAlignment: al });
                 off += ln[1] + 5;
             });
-            this.log.push({ id: t.id, kind: t.kind, tier: t.tier, dir: t.dir, inPlan: !!t.inPlan, skipWhy: why, entryMs: msOf(d) - (this.props.tsIsClose ? 60000 : 0), entry: o, stop0: t.stop, tp: t.tp });
+            this.log.push({ id: t.id, kind: t.kind, tier: t.tier, dir: t.dir, inPlan: !!t.inPlan, skipWhy: why, entryMs: msOf(d) - (this.props.tsIsClose ? 60000 : 0), entry: o, stop0: t.stop, tp: t.tp, shock: this.shock(msOf(d) - (this.props.tsIsClose ? 60000 : 0)), vol: this.adr10() / 255.2, mae: 0, mfe: 0 });
             t.logRow = this.log[this.log.length - 1];
         }
     }
@@ -397,6 +398,7 @@ class NQPlan {
         for (const t of this.trades) {
             if (t.state !== 2) continue;
             let exit = NaN, why = "", xi = i, xms = ms, xh = h, xl = l;
+            if (t.logRow && !(ymd !== t.ymd && !t.asia)) { t.logRow.mae = Math.max(t.logRow.mae, t.dir === 1 ? t.entry - l : h - t.entry); t.logRow.mfe = Math.max(t.logRow.mfe, t.dir === 1 ? h - t.entry : t.entry - l); }
             const hitS = t.dir === 1 ? l <= t.stop : h >= t.stop;
             const timeUp = t.asia ? (m >= t.exitM && m < 1080) : (m >= t.exitM && m <= 959);
             // 美股盤中的單：如果盤提早收（假日半天），下一根已經不是同一個盤中時段 → 用最後一根的收盤價出場

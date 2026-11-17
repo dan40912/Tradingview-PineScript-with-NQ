@@ -39,6 +39,6 @@ for (let i = 0; i < bars.length; i++) {
 calc.cur = bars.length;
 calc.step(bars[bars.length - 1], bars.length - 1);   // 最後一根當作已收盤
 const iso = (ms) => (ms ? new Date(ms).toISOString() : "");
-const rows = calc.log.map((t) => [t.kind, t.tier, t.dir, t.inPlan ? 1 : 0, JSON.stringify(t.skipWhy || ""), iso(t.entryMs), t.entry, iso(t.exitMs), t.exit, t.why || "", t.pnl].join(","));
-fs.writeFileSync(outPath, "kind,tier,dir,inPlan,skipWhy,entry_utc,entry,exit_utc,exit,why,pnl\n" + rows.join("\n") + "\n");
+const rows = calc.log.map((t) => [t.kind, t.tier, t.dir, t.inPlan ? 1 : 0, JSON.stringify(t.skipWhy || ""), iso(t.entryMs), t.entry, iso(t.exitMs), t.exit, t.why || "", t.pnl, t.shock, t.vol, t.mae, t.mfe].join(","));
+fs.writeFileSync(outPath, "kind,tier,dir,inPlan,skipWhy,entry_utc,entry,exit_utc,exit,why,pnl,shock,vol,mae,mfe\n" + rows.join("\n") + "\n");
 console.log("bars", bars.length, "log rows", calc.log.length, "graphic items", items, "items without key", noKey);

@@ -226,7 +226,8 @@ var float pdc      = na        // 前一天美股收盤
 var int   dTrend   = 0         // 日線：1 多頭、-1 空頭、0 盤整（只參考）
 var float volScale = na        // 前 10 天美股振幅平均 ÷ 255.2
 var array<float> recentC = array.new<float>()
-var float shockNow = 0.0       // 最近 30 根 1 分K 裡，5 分鐘內最大漲跌幅
+var array<int>   recentT = array.new<int>()
+var float shockNow = 0.0       // 最近 30 分鐘（時鐘時間）的 1 分K 裡，相隔 5 根的最大漲跌幅
 var float onLo  = na           // 美東 18:00～09:29 最低
 var int   onDay = 0
 var int   sesLastI = -1        // 這個美股盤中時段最後一根的分鐘序號（判斷假日半天）
@@ -293,12 +294,19 @@ adr10Now() =>
             sr += array.get(dRanges, n - 1 - k)
         out := sr / 10
     out
-shockOf(arr) =>
+// 只看最近 30 分鐘（時鐘時間）內的 K 棒：18:00 重新開盤時不會拿 17:00 以前的價格來比（和研究 docs/23 相同）
+shockOf(arr, tarr, nowT) =>
+    w = array.new<float>()
     n = array.size(arr)
+    if n > 0
+        for k = 0 to n - 1
+            if array.get(tarr, k) >= nowT - 30 * 60000
+                array.push(w, array.get(arr, k))
+    nw = array.size(w)
     mx = 0.0
-    if n >= 6
-        for k = 0 to n - 6
-            mx := math.max(mx, math.abs(array.get(arr, k + 5) - array.get(arr, k)))
+    if nw >= 6
+        for k = 0 to nw - 6
+            mx := math.max(mx, math.abs(array.get(w, k + 5) - array.get(w, k)))
     mx
 gateWhy() => shockNow >= swanTh ? "最近 30 分鐘暴衝 " + str.tostring(shockNow, "#,##0") + " 點" : planPnl - FULL_SL * (planOpen + 1) < LOSS_CAP ? "今天再虧一筆會超過 −$3,000" : ""
 // 用成交量分布算價值區（和 I2 相同算法，ES 也用 5 點一格）
@@ -443,7 +451,7 @@ if n1 > 0
             pvSum := 0.0
             vSum := 0.0
         vwPrev = vSum > 0 ? pvSum / vSum : na
-        shockNow := shockOf(recentC)
+        shockNow := shockOf(recentC, recentT, t1)
         // 5 分K：新的 5 分鐘開始時，先把上一根收掉並更新指標（只用已收盤的 1 分K）
         bk = (d1 % 100000) * 1000 + int(m1 / 5)   // 只要相鄰的 5 分鐘能分辨就好；用日期後 5 碼避免整數太大
         if not na(b5Key) and bk != b5Key and not na(b5C)
@@ -1112,8 +1120,10 @@ if n1 > 0
                 vSum += v1
                 vwNow := pvSum / vSum
             array.push(recentC, c1)
+            array.push(recentT, t1)
             if array.size(recentC) > 30
                 array.shift(recentC)
+                array.shift(recentT)
 
 // ---------- 盤前預判（只是提示；正式方向以 09:30 開盤價為準） ----------
 // 歷史（2024-01～2026-10，683 個可交易日）：美東 09:00 時價格在 VAL 下方 → 97% 開盤也在下方；在 VAH 上方 → 90%；在區內 → 86%。
