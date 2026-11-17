@@ -1,9 +1,10 @@
-"""把 engine.js、days.json、stats.json 塞進 template.html → 策略進出場地圖.html（單一檔案，雙擊就能開）。"""
+"""把 engine.js、importer.js、days.json、stats.json 塞進 template.html → 策略進出場地圖.html（單一檔案，雙擊就能開）。"""
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 html = (HERE / "template.html").read_text(encoding="utf-8")
 html = html.replace("/*__ENGINE__*/", (HERE / "engine.js").read_text(encoding="utf-8"))
+html = html.replace("/*__IMPORTER__*/", (HERE / "importer.js").read_text(encoding="utf-8"))
 html = html.replace("/*__DAYS__*/", (HERE / "days.json").read_text(encoding="utf-8"))
 html = html.replace("/*__STATS__*/", (HERE / "stats.json").read_text(encoding="utf-8"))
 # 單獨開檔時補上文件骨架（發佈成 Artifact 時平台會自己包）

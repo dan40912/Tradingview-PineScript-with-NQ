@@ -3,9 +3,15 @@
 (function (root) {
   const PT = 20, COST = 48, LAST = 179;
 
+  function pad(a, n) { const x = new Float64Array(180).fill(NaN); for (let i = 0; i < n; i++) x[i] = a[i]; return x; }
   function decode(r) {
-    const f = a => Float64Array.from(a, x => (r.b + x) / 4);
-    return Object.assign({}, r, { O: f(r.o), H: f(r.h), L: f(r.l), C: f(r.c), V: r.v });
+    const n = r.o.length, f = a => pad(a.map(x => (r.b + x) / 4), n);
+    return Object.assign({}, r, { O: f(r.o), H: f(r.h), L: f(r.l), C: f(r.c), V: pad(r.v, n), n });
+  }
+  // 自己輸入的資料：meta 是價位，o/h/l/c/v 是 09:30 起的 1 分K（最多 180 根，可以只到盤中某一分鐘）
+  function fromBars(meta, o, h, l, c, v) {
+    const n = Math.min(180, o.length);
+    return Object.assign({}, meta, { O: pad(o, n), H: pad(h, n), L: pad(l, n), C: pad(c, n), V: pad(v, n), n });
   }
 
   const tm = i => { const m = 570 + i; return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); };
@@ -25,13 +31,20 @@
 
   // 進場後逐分鐘追蹤：同一分鐘兩邊都碰到算止損（和凍結規則一樣保守）
   function sim(D, ei, dir, tp, sl, extra) {
-    const e = D.O[ei], tpPx = e + dir * tp, slPx = e - dir * sl;
+    const n = D.n == null ? 180 : D.n;
+    if (ei >= n) {   // 訊號剛出現在最後一根，下一分鐘才進場：用最後收盤估計
+      const e = D.C[n - 1];
+      return Object.assign({ dir, sigIdx: ei - 1, entryIdx: ei, entry: e, tp: e + dir * tp, sl: e - dir * sl, exitIdx: Infinity, exit: NaN, reason: 'pending', net: 0, est: true }, extra || {});
+    }
+    const e = D.O[ei], tpPx = e + dir * tp, slPx = e - dir * sl, end = Math.min(LAST, n - 1);
     let exitIdx = LAST, exit = D.C[LAST], reason = 'time';
-    for (let i = ei; i <= LAST; i++) {
+    if (end < LAST) { exitIdx = Infinity; exit = D.C[end]; reason = 'open'; }
+    for (let i = ei; i <= end; i++) {
       if (dir === 1 ? D.L[i] <= slPx : D.H[i] >= slPx) { exitIdx = i; exit = slPx; reason = 'sl'; break; }
       if (dir === 1 ? D.H[i] >= tpPx : D.L[i] <= tpPx) { exitIdx = i; exit = tpPx; reason = 'tp'; break; }
     }
     const pts = dir * (exit - e);
+    if (reason === 'open') return Object.assign({ dir, sigIdx: ei - 1, entryIdx: ei, entry: e, tp: tpPx, sl: slPx, exitIdx, exit, reason, net: 0 }, extra || {});
     return Object.assign({ dir, sigIdx: ei - 1, entryIdx: ei, entry: e, tp: tpPx, sl: slPx, exitIdx, exit, reason, net: pts * PT - COST }, extra || {});
   }
 
@@ -40,6 +53,7 @@
 
   // ---------- I2 價值區回歸 ----------
   function i2(D, ver) {
+    if (D.val == null || D.vah == null) return { why: '沒有前一日價值區（資料要包含前一天的盤中，或在左側自己填 VAL／VAH）' };
     const dir = D.O[0] > D.vah ? -1 : D.O[0] < D.val ? 1 : 0;
     const width = D.vah - D.val, dist = dir === -1 ? D.O[0] - D.vah : dir === 1 ? D.val - D.O[0] : null;
     const h1 = dir !== 0 && dist <= width;
@@ -80,6 +94,7 @@
     return { ev, orh, orl };
   }
   function resonance(D, ver) {
+    if (ver === 2 && D.pdh == null) return { why: '沒有前一日高低（在左側填入）' };
     const outside = D.O[0] > D.pdh || D.O[0] < D.pdl;
     if (ver === 2 && !outside) return { why: `開盤 ${fmt(D.O[0])} 在前日高低範圍內（${fmt(D.pdl)}～${fmt(D.pdh)}）→ v2 今天不做` };
     const { ev, orh, orl } = subSignals(D);
@@ -105,6 +120,7 @@
   // ---------- 參考點：前高／前低假突破 ----------
   function fakeBreak(D, side) {
     const lvl = side === -1 ? D.pdh : D.pdl;
+    if (lvl == null) return { why: '沒有前一日高低（在左側填入）' };
     const wait = side === -1 ? `等價格衝過前日高 ${fmt(lvl)} 後，5 分K 收回下方` : `等價格跌破前日低 ${fmt(lvl)} 後，5 分K 收回上方`;
     for (let k = 0; k < 24; k++) {
       const i1 = 5 * k + 4, ei = i1 + 1;
@@ -122,6 +138,7 @@
 
   // ---------- 參考點：區邊回歸（開在區內、盤中衝出又收回） ----------
   function edgeReturn(D) {
+    if (D.val == null || D.vah == null) return { why: '沒有前一日價值區' };
     if (D.O[0] > D.vah || D.O[0] < D.val) return { why: '只在開盤落在價值區內的日子做；今天開在區外' };
     let side = 0, cnt = 0;
     const wait = '等 5 分K 收到價值區外，再連續 2 根收回區內，往回做';
@@ -178,6 +195,7 @@
     const side = pos >= 0.8 ? -1 : pos <= 0.2 ? 1 : 0;
     if (!side) return { why: `開盤在隔夜區間的 ${(pos * 100).toFixed(0)}% 位置，不在頂部或底部 20% → 不做` };
     const wait = side === -1 ? `開在隔夜區間頂部，等 10:03 前都沒再突破隔夜高 ${fmt(D.onh)}` : `開在隔夜區間底部，等 10:03 前都沒再跌破隔夜低 ${fmt(D.onl)}`;
+    if ((D.n || 180) <= 33) return { wait, side };
     const [hi, lo] = dayHiLo(D, 32);
     if (side === -1 ? hi > D.onh : lo < D.onl) return { wait, side, why: side === -1 ? '開盤後又突破了隔夜高 → 庫存沒有修正，不做' : '開盤後又跌破了隔夜低 → 不做' };
     const t = sim(D, 33, side, 55, 145);
@@ -188,6 +206,7 @@
   // ---------- I4 窄初始平衡區突破 ----------
   function narrowIB(D) {
     if (!D.atr) return { why: '沒有 ATR20（資料不足）' };
+    if ((D.n || 180) < 60) return { wait: '等第一小時（09:30–10:29）走完，看區間夠不夠窄' };
     const [ibh, ibl] = dayHiLo(D, 59), w = ibh - ibl, lim = 0.35 * D.atr;
     if (w > lim) return { why: `第一小時區間 ${w.toFixed(0)} 點，大於 0.35×ATR20＝${lim.toFixed(0)} 點，不算窄 → 不做` };
     const B = bars5(D), wait = `第一小時區間只有 ${w.toFixed(0)} 點（窄），等 10:30 後 5 分K 收盤突破 ${fmt(ibl)}～${fmt(ibh)}`;
@@ -243,9 +262,7 @@
   // 估計主動買賣差（delta）：收在 K 棒上半部當成買方主動多、下半部當成賣方主動多
   function estDelta(D, i) { const r = D.H[i] - D.L[i]; return r > 0 ? D.V[i] * (2 * (D.C[i] - D.L[i]) / r - 1) : 0; }
   function keyLevels(D) {
-    const lv = [['VAH', D.vah], ['VAL', D.val], ['前日高', D.pdh], ['前日低', D.pdl]];
-    if (D.onh != null) lv.push(['隔夜高', D.onh], ['隔夜低', D.onl]);
-    return lv;
+    return [['VAH', D.vah], ['VAL', D.val], ['前日高', D.pdh], ['前日低', D.pdl], ['隔夜高', D.onh], ['隔夜低', D.onl]].filter(x => x[1] != null);
   }
   function absorption(D) {
     const lv = keyLevels(D), wait = '等價格碰到關鍵價位時爆出 2.5 倍以上的量，但被擋回（K 棒收在反方向那一半）';
@@ -311,6 +328,7 @@
   function ladder(D, upto, bin = 5) {
     const m = new Map();
     for (let i = 0; i <= upto; i++) {
+      if (!(D.H[i] >= D.L[i])) continue;
       const a = Math.floor(D.L[i] / bin), b = Math.floor(D.H[i] / bin), n = b - a + 1;
       const r = D.H[i] - D.L[i], buyFrac = r > 0 ? (D.C[i] - D.L[i]) / r : 0.5;
       for (let k = a; k <= b; k++) {
@@ -321,6 +339,6 @@
     return m;
   }
 
-  const api = { decode, runAll, STRATS, tm, fmt, bars5, ladder, estDelta, keyLevels, PT, COST };
+  const api = { decode, fromBars, runAll, STRATS, tm, fmt, bars5, ladder, estDelta, keyLevels, PT, COST };
   if (typeof module !== 'undefined') module.exports = api; else root.Engine = api;
 })(typeof window !== 'undefined' ? window : globalThis);
