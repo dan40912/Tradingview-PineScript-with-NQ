@@ -1,0 +1,652 @@
+<title>NQ 紙上交易練習</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+/* Layout: 交易台——左邊是回放圖，右邊是一張隨步驟換內容的「單據」，下面是練習紀錄。 */
+:root{
+  --bg:#e9edf1; --panel:#fbfcfd; --panel2:#f2f5f8; --ink:#16202a; --muted:#5b6977; --line:#d3dae1; --grid:#e2e7ec;
+  --accent:#b86a12; --accent-ink:#ffffff; --up:#11875a; --down:#c63f37; --gray:#8794a1; --vwap:#7357c4; --va:#2e78ad; --lvl:#9a6a2c; --cursor:#b86a12;
+  --up-bg:#e3f3ec; --down-bg:#f8e6e4; --warn-bg:#fbefdc; --shadow:0 1px 2px rgba(20,32,44,.06),0 6px 18px rgba(20,32,44,.06);
+  --f-body:"IBM Plex Sans","Noto Sans TC",system-ui,sans-serif; --f-head:"IBM Plex Sans Condensed","Noto Sans TC",system-ui,sans-serif; --f-mono:"IBM Plex Mono","Noto Sans TC",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d131a; --panel:#141c25; --panel2:#18212c; --ink:#e3e9ef; --muted:#93a1ae; --line:#263241; --grid:#1b2530;
+  --accent:#e09a3e; --accent-ink:#1a1206; --up:#3dbd85; --down:#eb6a61; --gray:#7d8a97; --vwap:#a68cf0; --va:#5aa6dc; --lvl:#c99a58; --cursor:#e09a3e;
+  --up-bg:#12291f; --down-bg:#2d1817; --warn-bg:#2b2112; --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d131a; --panel:#141c25; --panel2:#18212c; --ink:#e3e9ef; --muted:#93a1ae; --line:#263241; --grid:#1b2530;
+  --accent:#e09a3e; --accent-ink:#1a1206; --up:#3dbd85; --down:#eb6a61; --gray:#7d8a97; --vwap:#a68cf0; --va:#5aa6dc; --lvl:#c99a58; --cursor:#e09a3e;
+  --up-bg:#12291f; --down-bg:#2d1817; --warn-bg:#2b2112; --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.5;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 40px}
+.wrap{max-width:1360px;margin:0 auto;display:grid;gap:14px}
+h1,h2,h3{font-family:var(--f-head);margin:0;text-wrap:balance;letter-spacing:.01em}
+h1{font-size:22px;font-weight:700}
+h2{font-size:17px;font-weight:600}
+h3{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.mono,.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:7px 12px;min-height:36px}
+button:hover:not(:disabled){border-color:var(--muted)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button:disabled{opacity:.45;cursor:not-allowed}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+button.buy{background:var(--up);border-color:var(--up);color:#fff;font-weight:600}
+button.sell{background:var(--down);border-color:var(--down);color:#fff;font-weight:600}
+button.ghost{background:transparent}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 9px;min-height:36px}
+input[type=number]{width:100%}
+label{display:grid;gap:4px;font-size:12.5px;color:var(--muted)}
+
+/* header */
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;justify-content:space-between}
+.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.brand .tag{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.steps{display:flex;gap:4px;flex-wrap:wrap;list-style:none;margin:0;padding:3px;background:var(--panel2);border:1px solid var(--line);border-radius:10px}
+.steps li{font-size:13px;padding:5px 11px;border-radius:7px;color:var(--muted);display:flex;gap:6px;align-items:center}
+.steps li b{font-family:var(--f-mono);font-weight:500;font-size:12px}
+.steps li.on{background:var(--panel);color:var(--ink);box-shadow:var(--shadow);font-weight:600}
+.steps li.done{color:var(--ink)}
+.topbtns{display:flex;gap:8px;flex-wrap:wrap}
+
+/* main */
+.main{display:grid;grid-template-columns:minmax(0,1fr) 370px;gap:14px;align-items:start}
+@media (max-width:980px){.main{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+.chartcard{display:grid;min-width:0}
+.chartbar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line)}
+.clock{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+.clock .t{font-family:var(--f-mono);font-size:22px;font-weight:600}
+.clock .p{font-family:var(--f-mono);font-size:16px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:12px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);white-space:nowrap}
+.chip.hot{background:var(--warn-bg);border-color:var(--accent);color:var(--ink)}
+.chip.up{background:var(--up-bg);border-color:var(--up)}
+.chip.down{background:var(--down-bg);border-color:var(--down)}
+.canvaswrap{position:relative;height:min(62vh,560px);min-height:340px}
+canvas{display:block;width:100%;height:100%}
+.hover{position:absolute;left:10px;top:8px;font-family:var(--f-mono);font-size:11.5px;color:var(--muted);background:color-mix(in srgb,var(--panel) 85%,transparent);padding:2px 6px;border-radius:6px;pointer-events:none}
+.transport{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:10px 12px;border-top:1px solid var(--line)}
+.transport .sep{width:1px;height:24px;background:var(--line);margin:0 4px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;border-radius:0;min-height:34px;background:var(--panel)}
+.seg button.on{background:var(--ink);color:var(--panel)}
+
+/* side ticket */
+.ticket{display:grid;gap:0;min-width:0}
+.sec{padding:14px 16px;border-bottom:1px solid var(--line);display:grid;gap:10px;min-width:0}
+.sec:last-child{border-bottom:0}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13px}
+.kv dt{color:var(--muted)} .kv dd{margin:0;text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.levels{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;font-size:12.5px}
+.levels div{display:flex;justify-content:space-between;gap:8px}
+.levels span:first-child{color:var(--muted)}
+.big{font-family:var(--f-mono);font-size:28px;font-weight:600;line-height:1.1}
+.check{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;color:var(--ink)}
+.check input{min-height:auto;width:18px;height:18px;margin-top:2px;accent-color:var(--accent)}
+.banner{border-radius:10px;padding:10px 12px;display:grid;gap:6px;font-size:13.5px;border:1px solid var(--line);background:var(--panel2)}
+.banner.up{background:var(--up-bg);border-color:var(--up)}
+.banner.down{background:var(--down-bg);border-color:var(--down)}
+.banner.obs{background:var(--panel2);border-style:dashed}
+.banner.lock{background:var(--down-bg);border-color:var(--down);font-weight:600}
+.banner.warn{background:var(--warn-bg);border-color:var(--accent)}
+.banner .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pos{display:grid;gap:4px;font-size:13px}
+.pos .pl{font-family:var(--f-mono);font-size:20px;font-weight:600}
+.up-t{color:var(--up)} .down-t{color:var(--down)}
+.log{max-height:170px;overflow:auto;display:grid;gap:3px;font-size:12.5px}
+.log div{display:grid;grid-template-columns:44px 1fr;gap:8px}
+.log time{font-family:var(--f-mono);color:var(--muted)}
+.rules{font-size:12.5px;color:var(--muted);display:grid;gap:3px;margin:0;padding-left:18px}
+
+/* review + journal */
+.review{padding:16px;display:grid;gap:14px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.tile{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--panel2);display:grid;gap:2px}
+.tile .v{font-family:var(--f-mono);font-size:20px;font-weight:600}
+.tile .l{font-size:12px;color:var(--muted)}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:640px}
+th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:500}
+td.r,th.r{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.vio{color:var(--down);font-size:12px}
+.okb{color:var(--up);font-size:12px}
+textarea{width:100%;min-height:70px;resize:vertical}
+.journal{padding:16px;display:grid;gap:12px}
+.jhead{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline}
+.empty{border:1px dashed var(--line);border-radius:10px;padding:16px;color:var(--muted);font-size:13.5px}
+.settings{display:grid;gap:10px}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--ink);padding:0;width:min(420px,calc(100vw - 32px));box-shadow:var(--shadow)}
+dialog::backdrop{background:rgba(10,16,22,.45)}
+.dlg{padding:16px;display:grid;gap:12px}
+.toggle{display:flex;gap:9px;align-items:center;color:var(--ink);font-size:13.5px}
+.toggle input{width:18px;height:18px;min-height:auto;accent-color:var(--accent)}
+.foot{font-size:12px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>NQ 紙上交易練習</h1>
+      <span class="tag" id="dayTag">載入中…</span>
+    </div>
+    <ol class="steps" id="steps" aria-label="練習流程">
+      <li data-s="pre"><b>1</b>盤前</li>
+      <li data-s="play"><b>2</b>回放下單</li>
+      <li data-s="review"><b>3</b>收盤檢討</li>
+      <li data-s="saved"><b>4</b>存進紀錄</li>
+    </ol>
+    <div class="topbtns">
+      <button id="btnNew" class="ghost">換一天</button>
+      <button id="btnSettings" class="ghost">設定</button>
+    </div>
+  </header>
+
+  <div class="main">
+    <section class="card chartcard" aria-label="回放圖">
+      <div class="chartbar">
+        <div class="clock"><span class="t" id="clk">--:--</span><span class="p" id="px">—</span><span class="muted" id="pxchg"></span></div>
+        <div class="chips" id="ctxChips"></div>
+      </div>
+      <div class="canvaswrap"><canvas id="cv"></canvas><div class="hover" id="hover" hidden></div></div>
+      <div class="transport">
+        <button id="btnPlay" class="primary" aria-label="播放">▶ 播放</button>
+        <button data-step="1">+1 分</button>
+        <button data-step="5">+5 分</button>
+        <button data-step="15">+15 分</button>
+        <button id="btnNextSig">下一個訊號 ⇥</button>
+        <span class="sep"></span>
+        <div class="seg" role="group" aria-label="速度">
+          <button data-speed="1">1×</button><button data-speed="4" class="on">4×</button><button data-speed="15">15×</button><button data-speed="60">60×</button>
+        </div>
+        <div class="seg" role="group" aria-label="K 線週期">
+          <button data-tf="1">1 分</button><button data-tf="5" class="on">5 分</button>
+        </div>
+        <span class="sep"></span>
+        <button id="btnEnd" class="ghost">結束今天 → 檢討</button>
+      </div>
+    </section>
+
+    <aside class="card ticket" id="ticket" aria-label="單據"></aside>
+  </div>
+
+  <section class="card" id="reviewCard" hidden><div class="review" id="review"></div></section>
+
+  <section class="card"><div class="journal" id="journal"></div></section>
+
+  <p class="foot">研究用途，不是投資建議。K 線是 NQ 1 分K 歷史資料（2024-01 ～ 2026-11-25，隨機抽 120 天，其中 40 天是超大波動日）。訊號是 v18「順勢多點」的模擬結果；損益以 MNQ 每點 $2、每口來回 $4.8 計算。同一分鐘同時碰到止盈和止損時算止損。</p>
+</div>
+
+<dialog id="dlg">
+  <form class="dlg" method="dialog" id="setForm">
+    <h2>練習設定</h2>
+    <label for="setRisk">每筆最多虧多少（美元）
+      <input id="setRisk" type="number" min="50" step="50" value="500">
+    </label>
+    <label class="toggle"><input id="setHint" type="checkbox" checked> 回放時顯示 v18 訊號</label>
+    <label class="toggle"><input id="setPause" type="checkbox" checked> 訊號出現時自動暫停</label>
+    <label class="toggle"><input id="setLock" type="checkbox" checked> 虧一筆就停止今天</label>
+    <p class="foot">關掉「顯示訊號」可以練習自己判斷，收盤檢討時再對答案。</p>
+    <div class="row" style="display:flex;gap:8px;justify-content:flex-end"><button type="button" class="ghost" onclick="this.closest('dialog').close()">取消</button><button value="ok" class="primary" id="setOk">套用</button></div>
+  </form>
+</dialog>
+
+<script src="engine.js"></script>
+<script>
+(() => {
+const E = window.PaperEngine;
+const $ = s => document.querySelector(s);
+const fmt = (v, d = 2) => v == null || isNaN(v) ? "—" : Number(v).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
+const usd = v => (v < 0 ? "−$" : "+$") + Math.abs(Math.round(v)).toLocaleString("en-US");
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const WEEK = ["日", "一", "二", "三", "四", "五", "六"];
+const KIND = { "I2": "I2 回價值區", "前低多": "前日低破底翻（多）", "前高空": "前日高假突破（空）", "早盤夜低多": "早盤夜低多", "亞洲前低多": "亞洲前低多", "亞洲VAL多": "亞洲 VAL 多", "C1": "C1 開盤動能", "TD10": "TD10 趨勢日" };
+const kindName = k => KIND[k] || k;
+
+// ---------- settings (per-viewer convenience) ----------
+const S = { risk: 500, hint: true, pause: true, lock: true };
+try { Object.assign(S, JSON.parse(localStorage.getItem("paper.settings") || "{}")); } catch (e) {}
+const saveSettings = () => { try { localStorage.setItem("paper.settings", JSON.stringify(S)); } catch (e) {} };
+
+// ---------- state ----------
+let DAYS = [], day = null, bars = [], cur = 0, step = "pre", tf = 5, speed = 4, timer = null;
+let trades = [], pending = null, events = [], shownSig = new Set(), locked = false, checks = [false, false, false];
+let journal = [], store = null, hover = null;
+
+// ---------- journal storage: db (private per viewer) with localStorage fallback ----------
+const LKEY = "paper.journal";
+async function initStore() {
+  try {
+    const [db, user] = await Promise.all([window.claude?.use?.("db"), window.claude?.use?.("user")]);
+    const uid = user ? await user.id() : null;
+    if (db && uid) {
+      const col = db.collection("data/users/" + uid);
+      store = { kind: "db", col };
+      const t = setTimeout(() => { if (store.kind === "db" && !store.loaded) renderJournal("紀錄還在載入，可能暫時連不上。"); }, 10000);
+      col.onSnapshot(snap => {
+        store.loaded = true; clearTimeout(t);
+        journal = snap.docs.map(d => Object.assign({ id: d.id }, d.data())).filter(r => r.td).sort((a, b) => b.at - a.at);
+        renderJournal(); if (step === "pre" && !day) pickDay();
+      }, () => { clearTimeout(t); fallbackStore(); });
+      return;
+    }
+  } catch (e) {}
+  fallbackStore();
+}
+function fallbackStore() {
+  store = { kind: "local" };
+  try { journal = JSON.parse(localStorage.getItem(LKEY) || "[]"); } catch (e) { journal = []; }
+  renderJournal();
+}
+async function saveSession(rec) {
+  if (store?.kind === "db") {
+    try { await store.col.doc(rec.id).set(rec); return true; } catch (e) { if (e?.code !== "unavailable") { fallbackStore(); } else return false; }
+  }
+  journal = [rec, ...journal.filter(r => r.id !== rec.id)];
+  try { localStorage.setItem(LKEY, JSON.stringify(journal)); } catch (e) {}
+  renderJournal(); return true;
+}
+async function deleteSession(id) {
+  if (store?.kind === "db") { try { await store.col.doc(id).delete(); return; } catch (e) {} }
+  journal = journal.filter(r => r.id !== id);
+  try { localStorage.setItem(LKEY, JSON.stringify(journal)); } catch (e) {}
+  renderJournal();
+}
+
+// ---------- helpers ----------
+const now = () => bars[cur];
+const nowM = () => bars[cur].m + 1;                       // 這根收盤後的時間
+const suggest = () => E.sizing(S.risk, 145, day.vm);
+const realized = () => trades.filter(t => t.exitM != null).reduce((a, t) => a + t.pnl, 0);
+const openTrades = () => trades.filter(t => t.exitM == null);
+const idxOfM = m => bars.findIndex(b => b.m === m);
+const sigVisible = s => s.m >= 420 && s.m - 1 <= bars[cur].m;
+function vwapSeries() {
+  const out = new Array(bars.length).fill(null); let pv = 0, vv = 0;
+  for (let i = 0; i < bars.length; i++) { const b = bars[i]; if (b.m < 570) continue; const w = Math.max(b.v, 1); pv += (b.h + b.l + b.c) / 3 * w; vv += w; out[i] = pv / vv; }
+  return out;
+}
+let VW = [];
+function log(text, cls) { events.unshift({ m: bars[cur] ? nowM() : 0, text, cls }); }
+
+// ---------- day ----------
+function pickDay(forceNew) {
+  const done = new Set(journal.map(r => r.td));
+  let pool = DAYS.filter(d => !done.has(d.td));
+  if (!pool.length) pool = DAYS;
+  if (!forceNew && day && pool.includes(day)) return;
+  const d = pool[Math.floor(Math.random() * pool.length)];
+  loadDay(d);
+}
+function loadDay(d) {
+  stop(); day = d; bars = E.decode(d); VW = vwapSeries();
+  cur = 0; for (let i = 0; i < bars.length && bars[i].m <= 564; i++) cur = i;   // 停在 09:25
+  trades = []; pending = null; events = []; shownSig = new Set(); locked = false; checks = [false, false, false];
+  step = "pre"; $("#reviewCard").hidden = true;
+  for (const s of d.sig) if (s.m >= 420 && s.m - 1 <= bars[cur].m) shownSig.add(s);
+  renderAll();
+}
+
+// ---------- playback ----------
+function stop() { if (timer) { clearInterval(timer); timer = null; } $("#btnPlay").textContent = "▶ 播放"; }
+function play() {
+  if (step === "pre") return;
+  if (timer) return stop();
+  $("#btnPlay").textContent = "❚❚ 暫停";
+  timer = setInterval(() => { if (!advance(1)) stop(); }, Math.max(16, 1000 / speed));
+}
+function advance(n) {
+  if (step !== "play") return false;
+  for (let k = 0; k < n; k++) {
+    if (cur >= bars.length - 1) { finishDay(); return false; }
+    cur++;
+    const b = bars[cur];
+    if (pending) {               // 掛的市價單在這根開盤成交
+      const t = Object.assign(pending, { entry: b.o, entryM: b.m });
+      if (t.tpPts) t.tp = t.entry + t.dir * t.tpPts;
+      if (t.slPts) t.sl = t.entry - t.dir * t.slPts;
+      const rc = E.ruleCheck(day, t, { suggest: suggest().qty });
+      t.violations = rc.violations; t.planKind = rc.plan ? rc.plan.kind : null;
+      trades.push(t); pending = null;
+      log(`${t.dir > 0 ? "做多" : "做空"} ${t.qty} 口成交 ${fmt(t.entry)}｜TP ${fmt(t.tp)}｜SL ${fmt(t.sl)}` + (t.violations.length ? `｜⚠ ${t.violations.join("、")}` : "｜✓ 符合計畫"), t.violations.length ? "vio" : "ok");
+    }
+    for (const t of openTrades()) {
+      const r = E.stepTrade(t, b);
+      if (r) closeTrade(t, r);
+    }
+    const sig = day.sig.find(s => s.m - 1 === b.m && !shownSig.has(s));
+    if (sig) { shownSig.add(sig); if (S.hint) { log(sigText(sig), sig.plan ? "sig" : "obs"); if (S.pause) { stop(); renderAll(); return false; } } }
+    if (b.m >= 959) { finishDay(); return false; }
+  }
+  renderAll(); return true;
+}
+function closeTrade(t, r) {
+  Object.assign(t, r); t.pnl = E.pnlUSD(t);
+  log(`${r.why} ${fmt(t.exit)}（${usd(t.pnl)}）`, t.pnl >= 0 ? "ok" : "vio");
+  if (!locked && ((S.lock && t.pnl < 0) || realized() <= -S.risk)) { locked = true; log("今天停止：已經虧損，不再開新單", "vio"); }
+}
+function sigText(s) {
+  const side = s.dir > 0 ? "BUY" : "SELL";
+  if (s.plan) return `${side} 計畫內｜${kindName(s.kind)}｜下一分鐘進場`;
+  return `觀察（不做）｜${kindName(s.kind)}` + (s.skip ? `｜${s.skip}` : "");
+}
+
+// ---------- orders ----------
+function placeOrder(dir, fromSig) {
+  if (locked || step !== "play" || pending || cur >= bars.length - 1) return;
+  const f = readTicket();
+  pending = { dir, qty: f.qty, tpPts: f.tp, slPts: f.sl, tEnd: f.tEnd, fromSig: !!fromSig };
+  log(`送出${dir > 0 ? "做多" : "做空"}市價單 ${f.qty} 口（下一根開盤成交）`);
+  if (!timer) advance(1); else renderAll();
+}
+function flatten(t, why) {
+  const b = now(); closeTrade(t, { exitM: b.m, exit: b.c, why: why || "手動平倉" }); renderAll();
+}
+function readTicket() {
+  const q = parseInt($("#tQty")?.value, 10), tp = parseFloat($("#tTp")?.value), sl = parseFloat($("#tSl")?.value), te = $("#tEnd")?.value || "749";
+  return { qty: Math.max(1, isNaN(q) ? 1 : q), tp: isNaN(tp) || tp <= 0 ? null : tp, sl: isNaN(sl) || sl <= 0 ? null : sl, tEnd: parseInt(te, 10) };
+}
+
+// ---------- finish / review ----------
+function finishDay() {
+  if (step !== "play") return;
+  stop();
+  for (const t of openTrades()) closeTrade(t, { exitM: now().m, exit: now().c, why: "收盤平倉" });
+  pending = null; step = "review"; renderAll(); renderReview();
+  $("#reviewCard").hidden = false; $("#reviewCard").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function planResults() {
+  const q = Math.max(1, suggest().qty);
+  return day.sig.filter(s => s.plan && s.pnl != null).map(s => ({ s, pnl: s.pnl / 10 * q - (E.COST_MNQ * q - 48 / 10 * q) }));
+}
+function renderReview() {
+  const d = new Date(day.td + "T12:00:00");
+  const mine = trades.filter(t => t.exitM != null);
+  const myP = mine.reduce((a, t) => a + t.pnl, 0);
+  const vio = mine.filter(t => t.violations.length).length;
+  const plan = planResults(); const planP = plan.reduce((a, r) => a + r.pnl, 0);
+  const q = Math.max(1, suggest().qty);
+  const obs = day.sig.filter(s => !s.plan && s.pnl != null);
+  const verdict = !mine.length ? (plan.length ? "今天有計畫內的單，你沒有做。" : "今天沒有計畫內的單，你也沒有亂做：這就是對的。")
+    : vio ? `有 ${vio} 筆不符合計畫。` : "每一筆都符合計畫。";
+  $("#review").innerHTML = `
+    <div class="jhead"><h2>收盤檢討：${day.td}（週${WEEK[d.getDay()]}）</h2><span class="chips"><span class="chip ${day.vm >= 1.8 ? "hot" : ""}">波動 ${day.vm.toFixed(2)} 倍</span><span class="chip">前 10 天振幅 ${Math.round(day.adr)} 點</span></span></div>
+    <div class="tiles">
+      <div class="tile"><span class="l">你今天</span><span class="v ${myP >= 0 ? "up-t" : "down-t"}">${mine.length ? usd(myP) : "沒交易"}</span><span class="l">${mine.length} 筆</span></div>
+      <div class="tile"><span class="l">照計畫做（${q} 口 MNQ）</span><span class="v ${planP >= 0 ? "up-t" : "down-t"}">${plan.length ? usd(planP) : "沒有單"}</span><span class="l">${plan.length} 筆計畫內</span></div>
+      <div class="tile"><span class="l">守規則</span><span class="v">${mine.length ? (mine.length - vio) + " / " + mine.length : "—"}</span><span class="l">${esc(verdict)}</span></div>
+    </div>
+    <div><h3>你的單</h3>${mine.length ? tableTrades(mine) : `<p class="muted">沒有下單。</p>`}</div>
+    <div><h3>今天 v18 的訊號</h3>${tableSigs(day.sig, q)}</div>
+    ${obs.length ? `<p class="muted">灰點、藍點是計畫外：今天如果做了 ${obs.length} 個，合計 ${usd(obs.reduce((a, s) => a + s.pnl / 10 * q, 0))}（${q} 口）。</p>` : ""}
+    <label for="note">今天的心得（為什麼進場、哪裡做錯、下次怎麼做）<textarea id="note" placeholder="例：09:50 看到急跌就想接，但那不是計畫內的點。"></textarea></label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="primary" id="btnSave">存進紀錄</button><button id="btnNext2">直接換下一天</button><span class="muted" id="saveMsg"></span></div>`;
+  $("#btnSave").onclick = async () => {
+    const rec = { id: "s" + Date.now(), at: Date.now(), td: day.td, vm: day.vm, risk: S.risk, qty: q, myPnl: Math.round(myP), planPnl: Math.round(planP), n: mine.length, nPlan: plan.length, vio,
+      wins: mine.filter(t => t.pnl > 0).length, note: ($("#note").value || "").slice(0, 2000),
+      trades: mine.map(t => ({ dir: t.dir, qty: t.qty, m: t.entryM, entry: t.entry, xm: t.exitM, exit: t.exit, why: t.why, pnl: Math.round(t.pnl), vio: t.violations })) };
+    $("#btnSave").disabled = true; $("#saveMsg").textContent = "儲存中…";
+    const ok = await saveSession(rec);
+    if (ok) { step = "saved"; renderSteps(); $("#saveMsg").textContent = store.kind === "db" ? "已存進你的紀錄。" : "已存在這台裝置的瀏覽器。"; }
+    else { $("#btnSave").disabled = false; $("#saveMsg").textContent = "沒存成功，等一下再按一次。"; }
+  };
+  $("#btnNext2").onclick = () => { pickDay(true); window.scrollTo({ top: 0, behavior: "smooth" }); };
+}
+function tableTrades(list) {
+  return `<div class="tablewrap"><table><thead><tr><th>進場</th><th>方向</th><th class="r">口數</th><th class="r">進場價</th><th class="r">出場價</th><th>出場</th><th class="r">損益</th><th>規則</th></tr></thead><tbody>${list.map(t => `
+    <tr><td class="mono">${E.hhmm(t.entryM)}</td><td class="${t.dir > 0 ? "up-t" : "down-t"}">${t.dir > 0 ? "多" : "空"}</td><td class="r">${t.qty}</td><td class="r">${fmt(t.entry)}</td><td class="r">${fmt(t.exit)}</td><td>${esc(t.why)} <span class="muted mono">${E.hhmm(t.exitM)}</span></td><td class="r ${t.pnl >= 0 ? "up-t" : "down-t"}">${usd(t.pnl)}</td>
+    <td>${t.violations.length ? `<span class="vio">${t.violations.map(esc).join("<br>")}</span>` : `<span class="okb">符合計畫${t.planKind ? "：" + esc(kindName(t.planKind)) : ""}</span>`}</td></tr>`).join("")}</tbody></table></div>`;
+}
+function tableSigs(sigs, q) {
+  if (!sigs.length) return `<p class="muted">今天 v18 沒有任何點，連灰點都沒有。</p>`;
+  return `<div class="tablewrap"><table><thead><tr><th>時間</th><th>點</th><th>類別</th><th class="r">進場</th><th class="r">TP／SL</th><th>結果</th><th class="r">${q} 口損益</th></tr></thead><tbody>${sigs.map(s => `
+    <tr><td class="mono">${s.m < 420 ? "前一晚" : E.hhmm(s.m)}</td><td class="${s.dir > 0 ? "up-t" : "down-t"}">${s.dir > 0 ? "多" : "空"}｜${esc(kindName(s.kind))}</td>
+    <td>${s.plan ? `<span class="chip ${s.dir > 0 ? "up" : "down"}">計畫內</span>` : s.tier === 2 ? `<span class="chip">藍點（紙上）</span>` : `<span class="chip">灰點（不做）</span>`}${s.skip ? ` <span class="muted">${esc(s.skip)}</span>` : ""}</td>
+    <td class="r">${fmt(s.entry)}</td><td class="r">${s.tp != null ? fmt(s.tp) + "／" + fmt(s.sl) : "—"}</td><td>${esc(s.why)}${s.xm != null && s.xm >= 420 ? ` <span class="muted mono">${E.hhmm(s.xm)}</span>` : ""}</td><td class="r ${s.pnl >= 0 ? "up-t" : "down-t"}">${s.pnl == null ? "—" : usd(s.pnl / 10 * q)}</td></tr>`).join("")}</tbody></table></div>`;
+}
+
+// ---------- journal ----------
+function renderJournal(note) {
+  const j = journal;
+  const tot = j.reduce((a, r) => a + (r.myPnl || 0), 0), totPlan = j.reduce((a, r) => a + (r.planPnl || 0), 0);
+  const nT = j.reduce((a, r) => a + (r.n || 0), 0), nW = j.reduce((a, r) => a + (r.wins || 0), 0);
+  const clean = j.filter(r => !r.vio).length;
+  const where = store?.kind === "db" ? "存在你的 Claude 帳號，只有你看得到" : store?.kind === "local" ? "存在這台裝置的瀏覽器" : "";
+  $("#journal").innerHTML = `
+    <div class="jhead"><h2>練習紀錄</h2><span class="muted">${esc(note || where)}</span></div>
+    ${j.length ? `
+    <div class="tiles">
+      <div class="tile"><span class="l">練習天數</span><span class="v">${j.length}</span></div>
+      <div class="tile"><span class="l">你的合計</span><span class="v ${tot >= 0 ? "up-t" : "down-t"}">${usd(tot)}</span><span class="l">${nT} 筆，勝率 ${nT ? Math.round(nW / nT * 100) : 0}%</span></div>
+      <div class="tile"><span class="l">同樣的日子照計畫做</span><span class="v ${totPlan >= 0 ? "up-t" : "down-t"}">${usd(totPlan)}</span><span class="l">差距 ${usd(tot - totPlan)}</span></div>
+      <div class="tile"><span class="l">完全守規則的天數</span><span class="v">${clean} / ${j.length}</span></div>
+    </div>
+    <div class="tablewrap"><table><thead><tr><th>日期</th><th class="r">波動</th><th class="r">你</th><th class="r">照計畫</th><th class="r">筆數</th><th>規則</th><th>心得</th><th></th></tr></thead><tbody>${j.map(r => `
+      <tr><td class="mono">${esc(r.td)}</td><td class="r">${Number(r.vm).toFixed(2)}×</td><td class="r ${r.myPnl >= 0 ? "up-t" : "down-t"}">${r.n ? usd(r.myPnl) : "—"}</td><td class="r ${r.planPnl >= 0 ? "up-t" : "down-t"}">${r.nPlan ? usd(r.planPnl) : "—"}</td><td class="r">${r.n}</td>
+      <td>${r.vio ? `<span class="vio">${r.vio} 筆違規</span>` : `<span class="okb">守規則</span>`}</td><td style="max-width:320px">${esc(r.note || "")}</td><td><button class="ghost" data-del="${esc(r.id)}" aria-label="刪除這天">刪除</button></td></tr>`).join("")}</tbody></table></div>`
+    : `<div class="empty">還沒有紀錄。做完上面這一天、在收盤檢討按「存進紀錄」，這裡就會出現你的損益、和「照計畫做」的差距，以及守規則的天數。</div>`}`;
+  $("#journal").querySelectorAll("[data-del]").forEach(b => b.onclick = () => {
+    if (b.dataset.confirm) deleteSession(b.dataset.del); else { b.dataset.confirm = "1"; b.textContent = "確定刪除？"; }
+  });
+}
+
+// ---------- side ticket ----------
+function renderTicket() {
+  const el = $("#ticket"); const sz = suggest(); const lv = day.lv; const i2 = E.i2Direction(day);
+  const levelsHtml = [["VAH", lv.VAH], ["前日高", lv.PDH], ["POC", lv.POC], ["前日低", lv.PDL], ["VAL", lv.VAL], ["前日收", lv.PDC], ["夜盤高", lv.ONH], ["夜盤低", lv.ONL], ["前 3 日高", lv.H3], ["前 3 日低", lv.L3]]
+    .map(([k, v]) => `<div><span>${k}</span><span class="num">${fmt(v)}</span></div>`).join("");
+  const early = day.sig.filter(s => s.m < 420 || (s.m < 575 && s.m >= 420 && s.m - 1 <= now().m));
+  const sizeLine = sz.qty === 0 ? `<span class="vio">每筆 $${S.risk} 不夠做 1 口 MNQ（止損 145 點 ≈ $295）。請到設定調高，或今天只看不做。</span>`
+    : `建議 <b class="num">${sz.qty}</b> 口 MNQ` + (sz.halved ? `（波動 ≥ 2 倍，已從 ${sz.raw} 口減半）` : "") + `；一次止損約 <span class="num">${usd(-(145 * 2 + 4.8) * sz.qty)}</span>`;
+  if (step === "pre") {
+    const open = now();
+    el.innerHTML = `
+      <div class="sec"><h3>盤前 · 美東 ${E.hhmm(nowM())}</h3>
+        <div class="grid2"><div><div class="muted">波動倍數</div><div class="big ${day.vm >= 1.8 ? "down-t" : ""}">${day.vm.toFixed(2)}×</div></div><div><div class="muted">現價</div><div class="big">${fmt(open.c)}</div></div></div>
+        <div class="banner ${day.vm >= 1.8 ? "warn" : ""}">${day.vm >= 2.5 ? "超大波動日。一天可能上下 1,000 點，同樣的止損很容易被掃到。少做，口數減半。" : day.vm >= 1.8 ? "大波動日。中途逆向 100 點是常態，口數要縮小。" : day.vm >= 1.2 ? "波動偏高，照正常口數。" : "波動正常。"}</div>
+      </div>
+      <div class="sec"><h3>今天的價位</h3><div class="levels">${levelsHtml}</div>
+        <p class="muted" style="margin:0">I2：09:30 開盤時才決定方向。現價 ${open.c > lv.VAH ? "在 VAH 之上 → 若開在這裡，等回區才空" : open.c < lv.VAL ? "在 VAL 之下 → 若開在這裡，等回區才多" : "在價值區內 → 若開在這裡，I2 不做"}。</p>
+        ${early.length ? `<p class="muted" style="margin:0">開盤前已經出現 ${early.length} 個點（${early.map(s => esc(kindName(s.kind)) + (s.plan ? "・計畫內" : "・不做")).join("、")}），收盤檢討會列出結果。</p>` : ""}
+      </div>
+      <div class="sec"><h3>口數</h3><div>${sizeLine}</div><div class="muted" style="font-size:12.5px">每筆最多虧 $${S.risk}（到「設定」改）</div></div>
+      <div class="sec"><h3>開始前確認</h3>
+        ${["我看過今天的價值區、前日高低和波動倍數", `我只做彩色「計畫內」的點，灰點、藍點不做`, `我每筆都帶止損，${S.lock ? "虧一筆就停止今天" : `今天累積虧到 $${S.risk} 就停`}`].map((t, i) =>
+          `<label class="check"><input type="checkbox" data-chk="${i}" ${checks[i] ? "checked" : ""}> ${t}</label>`).join("")}
+        <button class="primary" id="btnStart" ${checks.every(Boolean) && sz.qty > 0 ? "" : "disabled"}>開始回放（從 09:25 起）</button>
+        <ul class="rules"><li>計畫內：I2 回價值區、前日高低假突破（要順 VWAP）、ES 同步的早盤夜低多。</li><li>進場時段 09:35～11:30；+55／−145 點；12:29 還沒出場就平倉。</li></ul>
+      </div>`;
+    el.querySelectorAll("[data-chk]").forEach(c => c.onchange = () => { checks[+c.dataset.chk] = c.checked; $("#btnStart").disabled = !(checks.every(Boolean) && sz.qty > 0); });
+    $("#btnStart").onclick = () => { step = "play"; log(`開始。${i2.text.replace("→", "，")}（09:30 才確定）`); renderAll(); play(); };
+    return;
+  }
+  const b = now(); const ot = openTrades();
+  const lastSig = [...shownSig].filter(s => S.hint && s.m - 1 <= b.m && s.m >= 420).sort((a, c) => c.m - a.m)[0];
+  const sigFresh = lastSig && lastSig.m - 1 === b.m;
+  const unreal = ot.reduce((a, t) => a + ((b.c - t.entry) * t.dir * 2 * t.qty), 0);
+  const def = { tp: 55, sl: 145, qty: Math.max(1, sz.qty), te: 749 };
+  const prev = readTicketSafe();
+  el.innerHTML = `
+    ${locked ? `<div class="sec"><div class="banner lock">今天停止。已經虧損，照規則不再開新單。剩下的時間可以快轉看完，再到收盤檢討。</div></div>` : ""}
+    ${sigFresh ? `<div class="sec"><div class="banner ${lastSig.plan ? (lastSig.dir > 0 ? "up" : "down") : "obs"}">
+        <strong>${lastSig.plan ? (lastSig.dir > 0 ? "BUY" : "SELL") + "　計畫內" : "觀察　不做"}｜${esc(kindName(lastSig.kind))}</strong>
+        ${lastSig.plan ? `<span>下一分鐘開盤進場｜TP +55｜SL −145｜12:29 前沒出場就平倉</span>
+          <div class="row"><button class="${lastSig.dir > 0 ? "buy" : "sell"}" id="btnFollow" ${locked || pending ? "disabled" : ""}>照訊號下單 ${Math.max(1, sz.qty)} 口</button><button class="ghost" id="btnSkip">不做，繼續</button></div>`
+        : `<span>${lastSig.tier === 2 ? "藍點是第二層紙上訊號，計畫不做。" : "灰點是計畫外：" + esc(lastSig.skip || "ES 沒同步或條件不足")}。看它怎麼走就好。</span><div class="row"><button class="ghost" id="btnSkip">繼續</button></div>`}
+      </div></div>` : ""}
+    <div class="sec"><h3>部位</h3>
+      ${ot.length ? ot.map(t => `<div class="pos"><div><b class="${t.dir > 0 ? "up-t" : "down-t"}">${t.dir > 0 ? "多" : "空"} ${t.qty} 口</b> @ <span class="num">${fmt(t.entry)}</span> <span class="muted mono">${E.hhmm(t.entryM)}</span></div>
+        <div class="muted mono">TP ${fmt(t.tp)} · SL ${fmt(t.sl)} · 最晚 ${E.hhmm(t.tEnd)}</div>
+        <div class="pl ${((b.c - t.entry) * t.dir) >= 0 ? "up-t" : "down-t"}">${usd((b.c - t.entry) * t.dir * 2 * t.qty)} <span class="muted" style="font-size:13px">${fmt((b.c - t.entry) * t.dir)} 點</span></div>
+        <div><button data-flat="${trades.indexOf(t)}">平倉（${fmt(b.c)}）</button></div></div>`).join("")
+        : pending ? `<div class="muted">市價單已送出，下一根開盤成交。</div>` : `<div class="muted">空手。</div>`}
+      <dl class="kv"><dt>今天已實現</dt><dd class="${realized() >= 0 ? "up-t" : "down-t"}">${usd(realized())}</dd><dt>未實現</dt><dd>${ot.length ? usd(unreal) : "—"}</dd></dl>
+    </div>
+    <div class="sec"><h3>下單</h3>
+      <div class="grid3">
+        <label for="tQty">口數 MNQ<input id="tQty" type="number" min="1" step="1" value="${prev.qty ?? def.qty}"></label>
+        <label for="tTp">止盈 點<input id="tTp" type="number" min="1" step="1" value="${prev.tp ?? def.tp}"></label>
+        <label for="tSl">止損 點<input id="tSl" type="number" min="1" step="1" value="${prev.sl ?? def.sl}"></label>
+      </div>
+      <label for="tEnd">最晚出場<select id="tEnd"><option value="749" ${(prev.te ?? "749") == "749" ? "selected" : ""}>12:29（計畫）</option><option value="955" ${prev.te == "955" ? "selected" : ""}>15:55</option></select></label>
+      <div class="grid2"><button class="buy" id="btnBuy" ${locked || pending ? "disabled" : ""}>做多 ▲</button><button class="sell" id="btnSell" ${locked || pending ? "disabled" : ""}>做空 ▼</button></div>
+      <div class="muted" style="font-size:12.5px">${sizeLine}</div>
+    </div>
+    <div class="sec"><h3>事件</h3><div class="log">${events.slice(0, 40).map(e => `<div><time>${e.m ? E.hhmm(e.m) : ""}</time><span class="${e.cls === "vio" ? "down-t" : e.cls === "ok" ? "up-t" : e.cls === "sig" ? "" : "muted"}">${esc(e.text)}</span></div>`).join("") || `<div class="muted">還沒有事件。</div>`}</div></div>`;
+  $("#btnBuy").onclick = () => placeOrder(1);
+  $("#btnSell").onclick = () => placeOrder(-1);
+  el.querySelectorAll("[data-flat]").forEach(x => x.onclick = () => flatten(trades[+x.dataset.flat]));
+  if ($("#btnFollow")) $("#btnFollow").onclick = () => {
+    $("#tQty").value = TICKET.tQty = Math.max(1, sz.qty); $("#tTp").value = TICKET.tTp = 55; $("#tSl").value = TICKET.tSl = 145; $("#tEnd").value = TICKET.tEnd = "749";
+    placeOrder(lastSig.dir, true); };
+  if ($("#btnSkip")) $("#btnSkip").onclick = () => { log("略過，繼續回放"); advance(1); play(); };
+  ["tQty", "tTp", "tSl", "tEnd"].forEach(id => { const x = $("#" + id); if (x) x.onchange = () => { TICKET[id] = x.value; }; });
+}
+const TICKET = {};
+function readTicketSafe() { return { qty: TICKET.tQty, tp: TICKET.tTp, sl: TICKET.tSl, te: TICKET.tEnd }; }
+
+// ---------- header / chips ----------
+function renderSteps() {
+  const order = ["pre", "play", "review", "saved"]; const k = order.indexOf(step);
+  $("#steps").querySelectorAll("li").forEach((li, i) => { li.classList.toggle("on", i === k); li.classList.toggle("done", i < k); });
+  $("#dayTag").textContent = day ? `隨機一天（日期收盤後揭曉）· 已練習 ${journal.length} 天` : "載入中…";
+}
+function renderClock() {
+  const b = now(); const lv = day.lv;
+  $("#clk").textContent = E.hhmm(nowM()) + " ET";
+  $("#px").textContent = fmt(b.c);
+  const ch = b.c - lv.PDC; $("#pxchg").textContent = `${ch >= 0 ? "+" : ""}${fmt(ch)} 點（對前日收）`;
+  $("#pxchg").className = ch >= 0 ? "up-t" : "down-t";
+  const i2 = nowM() > 570 ? E.i2Direction(day) : null;
+  $("#ctxChips").innerHTML = [`<span class="chip ${day.vm >= 1.8 ? "hot" : ""}">波動 ${day.vm.toFixed(2)}×</span>`,
+    i2 ? `<span class="chip">${esc(i2.text)}</span>` : `<span class="chip">I2 09:30 才定方向</span>`,
+    nowM() > 690 && nowM() < 750 ? `<span class="chip">11:30 後計畫不再進場</span>` : "",
+    locked ? `<span class="chip down">今天停止</span>` : ""].join("");
+  const dis = step !== "play";
+  document.querySelectorAll("[data-step]").forEach(x => x.disabled = dis);
+  $("#btnPlay").disabled = dis; $("#btnEnd").disabled = dis; $("#btnNextSig").disabled = dis || !S.hint;
+}
+function renderAll() { renderSteps(); renderClock(); renderTicket(); draw(); }
+
+// ---------- chart ----------
+const cv = $("#cv"), ctx = cv.getContext("2d");
+let geom = null;
+function css(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function agg(list, n) {
+  if (n === 1) return list.map((b, i) => Object.assign({ i0: i, i1: i }, b));
+  const out = []; const map = new Map();
+  list.forEach((b, i) => { const k = Math.floor((b.m - 420) / n); let a = map.get(k);
+    if (!a) { a = { m: 420 + k * n, o: b.o, h: b.h, l: b.l, c: b.c, v: b.v, i0: i, i1: i }; map.set(k, a); out.push(a); }
+    else { a.h = Math.max(a.h, b.h); a.l = Math.min(a.l, b.l); a.c = b.c; a.v += b.v; a.i1 = i; } });
+  return out;
+}
+function draw() {
+  if (!day) return;
+  const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+  if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+  const C = { ink: css("--ink"), muted: css("--muted"), grid: css("--grid"), line: css("--line"), up: css("--up"), down: css("--down"), gray: css("--gray"), vwap: css("--vwap"), va: css("--va"), lvl: css("--lvl"), cursor: css("--cursor"), panel: css("--panel"), panel2: css("--panel2") };
+  const vis = bars.slice(0, cur + 1); const series = agg(vis, tf);
+  const padR = 86, padL = 8, padT = 14, padB = 24, pw = W - padL - padR, ph = H - padT - padB;
+  // x 範圍
+  let m0, m1;
+  if (tf === 5) { m0 = 420; m1 = 960; } else { m1 = Math.max(nowM() + 12, 420 + 120); m0 = m1 - 150; }
+  const xs = m => padL + (m - m0) / (m1 - m0) * pw;
+  const shown = series.filter(b => b.m + tf > m0 && b.m < m1);
+  let lo = Infinity, hi = -Infinity; shown.forEach(b => { lo = Math.min(lo, b.l); hi = Math.max(hi, b.h); });
+  const R = Math.max(hi - lo, 20);
+  const lv = day.lv;
+  const LV = [["VAH", lv.VAH, "va"], ["POC", lv.POC, "va"], ["VAL", lv.VAL, "va"], ["前日高", lv.PDH, "lvl"], ["前日低", lv.PDL, "lvl"], ["夜盤高", lv.ONH, "muted"], ["夜盤低", lv.ONL, "muted"], ["3日高", lv.H3, "lvl"], ["3日低", lv.L3, "lvl"]];
+  LV.forEach(([, v]) => { if (v > lo - R * 0.25 && v < hi + R * 0.25) { lo = Math.min(lo, v); hi = Math.max(hi, v); } });
+  const ot = trades.filter(t => t.entryM != null); ot.forEach(t => { if (t.exitM == null) { lo = Math.min(lo, t.sl ?? lo, t.tp ?? lo); hi = Math.max(hi, t.sl ?? hi, t.tp ?? hi); } });
+  const pad = (hi - lo) * 0.06 + 2; lo -= pad; hi += pad;
+  const ys = p => padT + (hi - p) / (hi - lo) * ph;
+  geom = { m0, m1, xs, ys, padL, padR, pw, ph, padT, lo, hi, series: shown };
+  // 背景：盤前淡色
+  ctx.fillStyle = C.panel2; const xr = xs(570); if (xr > padL) ctx.fillRect(padL, padT, Math.min(xr, padL + pw) - padL, ph);
+  // 價值區帶
+  const yA = ys(lv.VAH), yB = ys(lv.VAL);
+  ctx.fillStyle = C.va; ctx.globalAlpha = 0.07; ctx.fillRect(padL, Math.max(padT, yA), pw, Math.min(padT + ph, yB) - Math.max(padT, yA)); ctx.globalAlpha = 1;
+  // 格線 + 價格軸
+  const stepP = niceStep((hi - lo) / 7);
+  ctx.font = "11px " + css("--f-mono"); ctx.textBaseline = "middle";
+  for (let p = Math.ceil(lo / stepP) * stepP; p <= hi; p += stepP) { const y = ys(p); ctx.strokeStyle = C.grid; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(padL, y + .5); ctx.lineTo(padL + pw, y + .5); ctx.stroke(); ctx.fillStyle = C.muted; ctx.textAlign = "left"; ctx.fillText(fmt(p, 0), padL + pw + 6, y); }
+  // 時間軸
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  const tStep = tf === 5 ? 60 : 30;
+  for (let m = Math.ceil(m0 / tStep) * tStep; m <= m1; m += tStep) { const x = xs(m); ctx.strokeStyle = C.grid; ctx.beginPath(); ctx.moveTo(x + .5, padT); ctx.lineTo(x + .5, padT + ph); ctx.stroke(); ctx.fillStyle = C.muted; ctx.fillText(E.hhmm(m), x, padT + ph + 6); }
+  [570, 575, 690, 749].forEach(m => { if (m > m0 && m < m1) { const x = xs(m); ctx.save(); ctx.setLineDash([2, 4]); ctx.strokeStyle = m === 570 ? C.ink : C.muted; ctx.globalAlpha = m === 570 ? .5 : .35; ctx.beginPath(); ctx.moveTo(x + .5, padT); ctx.lineTo(x + .5, padT + ph); ctx.stroke(); ctx.restore(); } });
+  // 價位線 + 標籤（避免重疊）
+  const labels = [];
+  LV.forEach(([k, v, col]) => { if (v < lo || v > hi) return; const y = ys(v); ctx.save(); ctx.strokeStyle = C[col]; ctx.globalAlpha = .8; ctx.lineWidth = k === "POC" ? 1 : 1.2; ctx.setLineDash(k.startsWith("夜") || k.startsWith("3日") ? [5, 4] : k === "POC" ? [2, 3] : []); ctx.beginPath(); ctx.moveTo(padL, y + .5); ctx.lineTo(padL + pw, y + .5); ctx.stroke(); ctx.restore(); labels.push({ y, t: k, c: C[col] }); });
+  // VWAP
+  ctx.save(); ctx.strokeStyle = C.vwap; ctx.lineWidth = 1.4; ctx.beginPath(); let st = false;
+  for (let i = 0; i <= cur; i++) { const v = VW[i]; if (v == null || bars[i].m < m0) continue; const x = xs(bars[i].m + .5), y = ys(v); if (!st) { ctx.moveTo(x, y); st = true; } else ctx.lineTo(x, y); }
+  ctx.stroke(); ctx.restore(); if (VW[cur] != null) labels.push({ y: ys(VW[cur]), t: "VWAP", c: C.vwap });
+  // K 線
+  const bw = Math.max(1, pw / ((m1 - m0) / tf) * 0.68);
+  shown.forEach(b => { const x = xs(b.m + tf / 2); const upc = b.c >= b.o; ctx.strokeStyle = upc ? C.up : C.down; ctx.fillStyle = upc ? C.up : C.down; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x + .5, ys(b.h)); ctx.lineTo(x + .5, ys(b.l)); ctx.stroke();
+    const y1 = ys(Math.max(b.o, b.c)), y2 = ys(Math.min(b.o, b.c)); ctx.fillRect(x - bw / 2, y1, bw, Math.max(1, y2 - y1)); });
+  // 現在
+  const xn = xs(nowM()); ctx.save(); ctx.strokeStyle = C.cursor; ctx.globalAlpha = .7; ctx.beginPath(); ctx.moveTo(xn + .5, padT); ctx.lineTo(xn + .5, padT + ph); ctx.stroke(); ctx.restore();
+  const yc = ys(now().c); ctx.fillStyle = C.cursor; ctx.fillRect(padL + pw + 1, yc - 9, padR - 2, 18); ctx.fillStyle = css("--accent-ink"); ctx.textAlign = "left"; ctx.textBaseline = "middle"; ctx.font = "600 11px " + css("--f-mono"); ctx.fillText(fmt(now().c), padL + pw + 6, yc);
+  // 訊號
+  if (S.hint || step === "review" || step === "saved") day.sig.forEach(s => { if (s.m < m0 || s.m > m1 || !(sigVisible(s) || step !== "play" && step !== "pre")) return;
+    const bi = idxOfM(s.m); if (bi < 0) return; const x = xs(s.m + .5); const bb = bars[bi];
+    const y = s.dir > 0 ? ys(Math.min(bb.l, s.entry)) + 12 : ys(Math.max(bb.h, s.entry)) - 12;
+    ctx.save(); const col = s.plan ? (s.dir > 0 ? C.up : C.down) : C.gray;
+    ctx.fillStyle = col; ctx.strokeStyle = col; ctx.lineWidth = 1.5; ctx.beginPath();
+    if (s.dir > 0) { ctx.moveTo(x, y - 7); ctx.lineTo(x - 6, y + 4); ctx.lineTo(x + 6, y + 4); } else { ctx.moveTo(x, y + 7); ctx.lineTo(x - 6, y - 4); ctx.lineTo(x + 6, y - 4); }
+    ctx.closePath(); s.plan ? ctx.fill() : ctx.stroke();
+    ctx.font = "600 10.5px " + css("--f-body"); ctx.textAlign = "center"; ctx.textBaseline = s.dir > 0 ? "top" : "bottom";
+    ctx.fillText(s.plan ? (s.dir > 0 ? "BUY" : "SELL") : (s.tier === 2 ? "藍點" : "不做"), x, s.dir > 0 ? y + 7 : y - 7); ctx.restore(); });
+  // 你的單
+  trades.forEach(t => { if (t.entryM == null) return; const x0 = xs(t.entryM), x1 = xs(t.exitM != null ? t.exitM + 1 : nowM()); const col = t.dir > 0 ? C.up : C.down;
+    if (t.exitM == null) { [[t.tp, C.up, "TP"], [t.sl, C.down, "SL"]].forEach(([p, c, k]) => { if (p == null) return; const y = ys(p); ctx.save(); ctx.setLineDash([6, 4]); ctx.strokeStyle = c; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(padL + pw, y); ctx.stroke(); ctx.restore(); labels.push({ y, t: k + " " + fmt(p, 0), c }); }); }
+    const ye = ys(t.entry); ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x0, ye); ctx.lineTo(x1, t.exitM != null ? ys(t.exit) : ys(now().c)); ctx.stroke();
+    ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x0, ye, 4, 0, Math.PI * 2); ctx.fill();
+    if (t.exitM != null) { const yx = ys(t.exit); ctx.strokeStyle = t.pnl >= 0 ? C.up : C.down; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x1 - 4, yx - 4); ctx.lineTo(x1 + 4, yx + 4); ctx.moveTo(x1 + 4, yx - 4); ctx.lineTo(x1 - 4, yx + 4); ctx.stroke(); }
+    ctx.restore(); });
+  // 右側標籤
+  labels.sort((a, b) => a.y - b.y); let lastY = -99; ctx.font = "500 10.5px " + css("--f-body"); ctx.textAlign = "right"; ctx.textBaseline = "middle";
+  labels.forEach(L => { let y = Math.max(L.y, lastY + 12); if (Math.abs(y - yc) < 11) y = yc + (y < yc ? -12 : 12); lastY = y; if (y < padT || y > padT + ph) return;
+    const w = ctx.measureText(L.t).width + 8; ctx.fillStyle = C.panel; ctx.globalAlpha = .9; ctx.fillRect(padL + pw - w - 2, y - 7, w, 14); ctx.globalAlpha = 1; ctx.fillStyle = L.c; ctx.fillText(L.t, padL + pw - 6, y); });
+  // hover
+  if (hover && geom) { const hb = shown.find(b => hover.x >= xs(b.m) && hover.x < xs(b.m + tf));
+    const hv = $("#hover"); if (hb) { hv.hidden = false; hv.textContent = `${E.hhmm(hb.m)}  開 ${fmt(hb.o)}  高 ${fmt(hb.h)}  低 ${fmt(hb.l)}  收 ${fmt(hb.c)}`; } else hv.hidden = true; }
+}
+function niceStep(x) { const p = Math.pow(10, Math.floor(Math.log10(x))); const f = x / p; return (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * p; }
+cv.addEventListener("mousemove", e => { const r = cv.getBoundingClientRect(); hover = { x: e.clientX - r.left, y: e.clientY - r.top }; draw(); });
+cv.addEventListener("mouseleave", () => { hover = null; $("#hover").hidden = true; });
+new ResizeObserver(() => draw()).observe(cv);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => draw());
+new MutationObserver(() => draw()).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+// ---------- controls ----------
+$("#btnPlay").onclick = play;
+document.querySelectorAll("[data-step]").forEach(b => b.onclick = () => { stop(); advance(+b.dataset.step); });
+document.querySelectorAll("[data-speed]").forEach(b => b.onclick = () => { speed = +b.dataset.speed; document.querySelectorAll("[data-speed]").forEach(x => x.classList.toggle("on", x === b)); if (timer) { stop(); play(); } });
+document.querySelectorAll("[data-tf]").forEach(b => b.onclick = () => { tf = +b.dataset.tf; document.querySelectorAll("[data-tf]").forEach(x => x.classList.toggle("on", x === b)); draw(); });
+$("#btnNextSig").onclick = () => { stop(); const nx = day.sig.filter(s => s.m - 1 > now().m).sort((a, b) => a.m - b.m)[0];
+  if (!nx) { log("今天後面沒有訊號了"); renderAll(); return; } advance(Math.max(1, idxOfM(nx.m - 1) - cur)); };
+$("#btnEnd").onclick = () => { stop(); while (step === "play" && cur < bars.length - 1) { const before = cur; advanceQuiet(); if (cur === before) break; } finishDay(); };
+function advanceQuiet() { const p = S.pause; S.pause = false; advance(Math.min(60, bars.length - 1 - cur)); S.pause = p; }
+$("#btnNew").onclick = () => { pickDay(true); };
+$("#btnSettings").onclick = () => { $("#setRisk").value = S.risk; $("#setHint").checked = S.hint; $("#setPause").checked = S.pause; $("#setLock").checked = S.lock; $("#dlg").showModal(); };
+$("#setForm").addEventListener("submit", e => {
+  S.risk = Math.max(50, parseInt($("#setRisk").value, 10) || 500); S.hint = $("#setHint").checked; S.pause = $("#setPause").checked; S.lock = $("#setLock").checked; saveSettings(); if (day) renderAll(); });
+document.addEventListener("keydown", e => { if (e.target.closest("input,textarea,select,dialog")) return;
+  if (e.code === "Space") { e.preventDefault(); play(); } else if (e.key === "ArrowRight") { stop(); advance(e.shiftKey ? 5 : 1); } });
+
+// ---------- boot ----------
+fetch("days.json").then(r => r.json()).then(d => { DAYS = d; if (!day) pickDay(true); else renderAll(); })
+  .catch(() => { $("#dayTag").textContent = "資料載入失敗，請重新整理。"; });
+renderJournal(); initStore();
+})();
+</script>
