@@ -1,7 +1,7 @@
 // 端到端測試：在真的瀏覽器裡跑完一天的紙上交易流程
 const { chromium } = require("playwright");
 const http = require("http"), fs = require("fs"), path = require("path");
-const ROOT = path.join(__dirname, "paper");
+const ROOT = __dirname;
 const srv = http.createServer((req, res) => {
   let p = decodeURIComponent(req.url.split("?")[0]); if (p === "/") p = "/index.html";
   const f = path.join(ROOT, p);
